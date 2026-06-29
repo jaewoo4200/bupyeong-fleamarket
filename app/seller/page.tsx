@@ -6,6 +6,7 @@ import { Header } from "@/components/site/Header";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { SeatMap } from "@/components/venue/SeatMap";
+import { GpsGuide } from "@/components/venue/GpsGuide";
 import { useAppData } from "@/lib/data/hooks";
 import { buildSeatStates, searchSellers } from "@/lib/data/selectors";
 import { effectiveSeats } from "@/lib/venue/seats";
@@ -116,6 +117,9 @@ function SellerCard({ seller, data }: { seller: Seller; data: ReturnType<typeof 
                 </p>
               )}
             </div>
+          </div>
+          <div className="px-5 pb-1">
+            <GpsGuide />
           </div>
           <div className="p-3">
             <div style={{ aspectRatio: band === "band1" ? 3.29 : 1.63 }} className="w-full">

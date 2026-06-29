@@ -13,9 +13,17 @@ export function getSupabaseClient(): SupabaseClient {
   if (!_client) {
     if (!URL || !ANON) throw new Error("Supabase 환경변수가 설정되지 않았습니다.");
     _client = createClient(URL, ANON, {
-      auth: { persistSession: false },
+      // 관리자 로그인 세션 유지(쓰기 권한). 브라우저에서만 동작.
+      auth: { persistSession: true, autoRefreshToken: true },
       realtime: { params: { eventsPerSecond: 5 } },
     });
   }
   return _client;
+}
+
+/** 현재 로그인 세션 여부 */
+export async function hasSession(): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false;
+  const { data } = await getSupabaseClient().auth.getSession();
+  return Boolean(data.session);
 }

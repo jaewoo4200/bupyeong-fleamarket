@@ -96,9 +96,13 @@ export class SupabaseStore implements Store {
     this.currentEventId = localStorage.getItem(CURRENT_KEY) ?? undefined;
     try {
       await this.load();
+      // 빈 DB면 데모 시드 — 단, 로그인(authenticated)된 경우만(제한 RLS 호환)
       if (this.data.events.length === 0) {
-        await this.autoSeed();
-        await this.load();
+        const { data } = await this.sb().auth.getSession();
+        if (data.session) {
+          await this.autoSeed();
+          await this.load();
+        }
       }
       this.subscribeRealtime();
     } catch (e) {

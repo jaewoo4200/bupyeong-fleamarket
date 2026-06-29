@@ -2,6 +2,13 @@
 
 > 최신 항목을 위에 추가. 타 에이전트/세션의 컨텍스트 유지용.
 
+## 2026-06-30 (10) — 운영 보안 하드닝 + 기능 6-B(GPS)
+- **Supabase Auth 로그인**: Supabase 모드일 때 `AdminGate`가 이메일/비번 로그인(`signInWithPassword`), client `persistSession`, 로그아웃 signOut. 로컬 모드는 기존 비번 게이트 유지. autoSeed는 세션 있을 때만.
+- **제한 RLS `0003_secure_rls.sql`**: 공개 읽기 / 인증 쓰기, `claim_seat`는 authenticated만. ⚠️ 적용 순서: 관리자 계정 생성→배포→0003.
+- **기능 6-B GPS 길안내**(`components/venue/GpsGuide.tsx`, Kakao 키 불필요): 셀러 내자리 화면에서 위치 권한→행사장까지 거리·방위, 나침반 화살표(DeviceOrientation), 배치도 좌석 강조. 미지원/거부 시 배치도+문구 폴백.
+- 검증: typecheck·build·test(6/6). 로컬 GPS 버튼 렌더, Supabase 모드 Auth 로그인 UI 렌더 확인. (실제 로그인/GPS 값은 계정·기기 필요)
+- ⚠️ **아직 push 안 함**: 관리자 계정 생성 후 push(라이브 /admin이 Auth 로그인으로 전환)→0003 실행 순서.
+
 ## 2026-06-30 (9) — 일괄 제외 UI · 큰 라벨 · 2매대 매칭
 - **일괄 추첨 제외**: `자리 설정 → 일괄 제외(드래그)`. SeatMap 포인터 드래그 lasso(터치/마우스) + 빠른 칩(57~80·45~80·윗/아랫구간·전체 초기화). `Store.setSeatsActive` 일괄 op(양 어댑터).
 - **배치도 라벨 확대**: 매장명 상한 9→16(폭 맞춤), 좌석 셀 상호명 글자 확대.
