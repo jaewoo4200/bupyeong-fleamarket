@@ -89,6 +89,25 @@ function seedData(): AppData {
   };
 }
 
+/** 저장된 데이터에 누락 필드를 채워 구버전 호환 (스키마 진화 대비) */
+function normalizeData(raw: unknown): AppData {
+  const d = (raw && typeof raw === "object" ? raw : {}) as Partial<AppData>;
+  const events = (Array.isArray(d.events) ? d.events : []).map((e) => ({
+    ...e,
+    woodSeatCodes: e.woodSeatCodes ?? [],
+    inactiveSeatCodes: e.inactiveSeatCodes ?? [],
+    splitSeatCodes: e.splitSeatCodes ?? [],
+    customSeats: e.customSeats ?? [],
+  })) as EventConfig[];
+  return {
+    events,
+    sellers: Array.isArray(d.sellers) ? d.sellers : [],
+    draws: Array.isArray(d.draws) ? d.draws : [],
+    notes: Array.isArray(d.notes) ? d.notes : [],
+    currentEventId: d.currentEventId,
+  };
+}
+
 export class DataStore {
   private data: AppData = EMPTY_DATA;
   private listeners = new Set<() => void>();
@@ -100,9 +119,8 @@ export class DataStore {
     this.initialized = true;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      this.data = raw ? (JSON.parse(raw) as AppData) : seedData();
-      if (!this.data.notes) this.data.notes = []; // 구버전 저장 데이터 호환
-      if (!raw) this.persist(false);
+      this.data = raw ? normalizeData(JSON.parse(raw)) : seedData();
+      this.persist(false); // 정규화/시드 결과를 다시 저장(구버전 업그레이드)
     } catch {
       this.data = seedData();
     }
@@ -121,8 +139,7 @@ export class DataStore {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        this.data = JSON.parse(raw) as AppData;
-        if (!this.data.notes) this.data.notes = [];
+        this.data = normalizeData(JSON.parse(raw));
         this.emit();
       }
     } catch {
