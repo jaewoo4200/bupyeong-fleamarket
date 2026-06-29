@@ -93,3 +93,35 @@ export type SeatCellState = {
   type: SeatType;
   occupant?: { name: string; business: string; categoryKey: CategoryKey };
 };
+
+export type SellerImportRow = {
+  seq: number;
+  business: string;
+  name: string;
+  productText: string;
+  phone?: string;
+};
+
+/** 로컬/Supabase 어댑터 공통 인터페이스 (화면은 이것만 의존) */
+export interface Store {
+  subscribe(cb: () => void): () => void;
+  getSnapshot(): AppData;
+  getServerSnapshot(): AppData;
+  setCurrentEvent(id: string): void;
+  createEvent(input: { date: string; weekday: Weekday; eventType: EventType; name?: string }): void;
+  updateEvent(id: string, patch: Partial<EventConfig>): void;
+  importSellers(eventId: string, rows: SellerImportRow[]): void;
+  drawSeat(eventId: string, sellerId: string): Promise<DrawResult>;
+  reassignSeat(eventId: string, sellerId: string, seatCode: string): void;
+  clearAssignment(eventId: string, sellerId: string): void;
+  setSeatActive(eventId: string, seatCode: string, active: boolean): void;
+  setSeatType(eventId: string, seatCode: string, type: SeatType): void;
+  setSeatSplit(eventId: string, comboCode: string, split: boolean): void;
+  addCustomSeat(eventId: string, seat: CustomSeat): void;
+  removeCustomSeat(eventId: string, code: string): void;
+  resetDraws(eventId: string): void;
+  addNote(eventId: string, text: string, tag?: Note["tag"]): void;
+  toggleNote(id: string): void;
+  removeNote(id: string): void;
+  resetAll(): void;
+}

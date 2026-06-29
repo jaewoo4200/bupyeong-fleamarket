@@ -8,107 +8,26 @@ import type {
   EventType,
   Seller,
   Weekday,
+  CustomSeat,
+  Note,
+  Store,
 } from "./types";
 import { categorize } from "@/lib/venue/categories";
 import { activeSeatCodes, pickSeat } from "@/lib/lottery/rules";
-import { splitParts } from "@/lib/venue/seats";
-import type { CustomSeat, Note } from "./types";
-import { SEED_SELLERS } from "./seed-sellers";
+import {
+  STORAGE_KEY,
+  CHANNEL,
+  uid,
+  EMPTY_DATA,
+  seedData,
+  normalizeData,
+  comboCodeMatches,
+} from "./seed";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { SupabaseStore } from "./supabase-store";
 
-/** 결합석 분리/붙임 토글 시, 해당 결합석 또는 그 단독석에 배정된 셀러인지 */
-function comboCodeMatches(comboCode: string, assignedSeat: string): boolean {
-  return assignedSeat === comboCode || splitParts(comboCode).includes(assignedSeat);
-}
-
-const STORAGE_KEY = "bupyeong-flea/v1";
-const CHANNEL = "bupyeong-flea";
-
-function uid(prefix = ""): string {
-  const r =
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : Math.random().toString(36).slice(2) + Date.now().toString(36);
-  return prefix + r;
-}
-
-/** 안정적인 빈 스냅샷 (SSR/초기 렌더용 — 매번 새 객체를 반환하면 무한 루프) */
-const EMPTY_DATA: AppData = { events: [], sellers: [], draws: [], notes: [] };
-
-function emptyData(): AppData {
-  return { events: [], sellers: [], draws: [], notes: [] };
-}
-
-/** 시드: 다가오는 토요일 플리마켓 1건 + 참가자리스트 40명 */
-function makeEvent(date: string, weekday: Weekday, name: string): EventConfig {
-  return {
-    id: uid("evt_"),
-    date,
-    weekday,
-    eventType: "fleamarket",
-    name,
-    status: "lottery_open",
-    countWood: 8,
-    countTable: 72,
-    countChair: 80,
-    woodSeatCodes: [],
-    inactiveSeatCodes: [],
-    splitSeatCodes: [],
-    customSeats: [],
-  };
-}
-
-function seedSellersFor(eventId: string): Seller[] {
-  return SEED_SELLERS.map((s) => ({
-    id: uid("sel_"),
-    eventId,
-    seq: s.seq,
-    business: s.business,
-    name: s.name,
-    productText: s.productText,
-    categoryKey: categorize(s.productText),
-    assignedSeat: null,
-    drawnAt: null,
-  }));
-}
-
-function seedData(): AppData {
-  // 7/4(토): 근무표 데모 / 6/7(일): 버스킹 일정 데모
-  const julEvent = makeEvent("2026-07-04", "토", "2026-07-04 (토) 플리마켓");
-  const junEvent = makeEvent("2026-06-07", "일", "2026-06-07 (일) 플리마켓");
-  const sellers = [...seedSellersFor(julEvent.id), ...seedSellersFor(junEvent.id)];
-  const notes = [
-    { id: uid("note_"), eventId: julEvent.id, text: "57~59 구간 의자 2개 추가 요청 (셀러 만달)", tag: "chair" as const, done: false, createdAt: "2026-07-04T08:30:00.000Z" },
-    { id: uid("note_"), eventId: julEvent.id, text: "분수대 쪽 하수구 덮개 점검 필요", tag: "facility" as const, done: false, createdAt: "2026-07-04T08:40:00.000Z" },
-  ];
-  return {
-    events: [julEvent, junEvent],
-    sellers,
-    draws: [],
-    notes,
-    currentEventId: julEvent.id,
-  };
-}
-
-/** 저장된 데이터에 누락 필드를 채워 구버전 호환 (스키마 진화 대비) */
-function normalizeData(raw: unknown): AppData {
-  const d = (raw && typeof raw === "object" ? raw : {}) as Partial<AppData>;
-  const events = (Array.isArray(d.events) ? d.events : []).map((e) => ({
-    ...e,
-    woodSeatCodes: e.woodSeatCodes ?? [],
-    inactiveSeatCodes: e.inactiveSeatCodes ?? [],
-    splitSeatCodes: e.splitSeatCodes ?? [],
-    customSeats: e.customSeats ?? [],
-  })) as EventConfig[];
-  return {
-    events,
-    sellers: Array.isArray(d.sellers) ? d.sellers : [],
-    draws: Array.isArray(d.draws) ? d.draws : [],
-    notes: Array.isArray(d.notes) ? d.notes : [],
-    currentEventId: d.currentEventId,
-  };
-}
-
-export class DataStore {
+/** 로컬 어댑터: localStorage + BroadcastChannel(탭 간 실시간). 무설정 즉시 실행. */
+export class DataStore implements Store {
   private data: AppData = EMPTY_DATA;
   private listeners = new Set<() => void>();
   private channel: BroadcastChannel | null = null;
@@ -176,19 +95,6 @@ export class DataStore {
   getSnapshot = (): AppData => this.data;
   getServerSnapshot = (): AppData => EMPTY_DATA;
 
-  // ---- selectors ----
-  currentEvent(): EventConfig | undefined {
-    return this.data.events.find((e) => e.id === this.data.currentEventId) ?? this.data.events[0];
-  }
-  sellersForEvent(eventId: string): Seller[] {
-    return this.data.sellers.filter((s) => s.eventId === eventId).sort((a, b) => a.seq - b.seq);
-  }
-  drawsForEvent(eventId: string): DrawLog[] {
-    return this.data.draws
-      .filter((d) => d.eventId === eventId)
-      .sort((a, b) => b.at.localeCompare(a.at));
-  }
-
   // ---- events ----
   createEvent(input: {
     date: string;
@@ -252,7 +158,7 @@ export class DataStore {
   }
 
   // ---- lottery ----
-  drawSeat(eventId: string, sellerId: string, rand?: () => number): DrawResult {
+  async drawSeat(eventId: string, sellerId: string, rand?: () => number): Promise<DrawResult> {
     const event = this.data.events.find((e) => e.id === eventId);
     const seller = this.data.sellers.find((s) => s.id === sellerId);
     if (!event || !seller) throw new Error("행사 또는 셀러를 찾을 수 없습니다.");
@@ -476,8 +382,9 @@ export class DataStore {
   }
 }
 
-let _store: DataStore | null = null;
-export function getStore(): DataStore {
-  if (!_store) _store = new DataStore();
+let _store: Store | null = null;
+/** 환경에 Supabase 키가 있으면 Supabase 어댑터, 없으면 로컬 어댑터. */
+export function getStore(): Store {
+  if (!_store) _store = isSupabaseConfigured() ? new SupabaseStore() : new DataStore();
   return _store;
 }

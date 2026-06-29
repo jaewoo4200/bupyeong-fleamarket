@@ -55,23 +55,22 @@ function KioskInner() {
   // 선택된 셀러의 실시간 상태(추첨 후 assignedSeat 반영)
   const selectedLive = selected ? sellers.find((s) => s.id === selected.id) ?? selected : null;
 
-  function startDraw() {
+  async function startDraw() {
     if (!event || !selected) return;
     setError(null);
     setPhase("drawing");
-    let res: DrawResult | null = null;
     try {
-      res = store.drawSeat(event.id, selected.id);
+      // 추첨(서버 RPC 가능)과 룰렛 연출 최소 시간을 함께 기다림
+      const [res] = await Promise.all([
+        store.drawSeat(event.id, selected.id),
+        new Promise((r) => setTimeout(r, 1800)),
+      ]);
+      setResult(res);
+      setPhase("revealed");
     } catch (e) {
       setError(e instanceof Error ? e.message : "추첨 실패");
       setPhase("ready");
-      return;
     }
-    // 룰렛 연출 후 공개
-    setTimeout(() => {
-      setResult(res);
-      setPhase("revealed");
-    }, 1800);
   }
 
   function reset() {
