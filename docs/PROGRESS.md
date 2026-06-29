@@ -10,10 +10,13 @@
 - 검증: typecheck·build·test(6/6) 통과, **로컬 어댑터 추첨 회귀 OK**. Supabase 런타임 검증은 사용자가 마이그레이션 적용 후 진행.
 - GitHub 푸시 완료(noreply 이메일로 커밋 재작성). 배포 가이드 `docs/DEPLOY.md`.
 
+### 배포 완료 (2026-06-29)
+- 라이브: https://bupyeong-fleamarket.vercel.app · GitHub 푸시 + Vercel env(3키+ADMIN) Redeploy 완료.
+- 마이그레이션 적용 확인: events 2 / sellers 80 / notes 2 (앱 자동 시드 = anon 쓰기 성공), 사이트 200, `claim_seat` RPC 정상.
+
 ### 다음
-- [ ] 사용자: Supabase SQL Editor에 `0001_init.sql` 실행 → 로컬 `npm run dev` 재시작 → 추첨/실시간 검증.
-- [ ] Vercel 환경변수(3 키 + ADMIN_PASSWORD) 추가 후 Redeploy.
-- [ ] (운영) Supabase Auth + 제한 RLS로 교체(현재 PoC 공개 RLS).
+- [ ] 사람 확인: 라이브에서 두 기기(/kiosk ↔ /board)로 추첨→실시간 반영 체감.
+- [ ] (운영) Supabase Auth + 제한 RLS로 교체(현재 PoC 공개 RLS). 기능 6-B(지도 길안내).
 
 ## 2026-06-29 (7) — Claude Design 핸드오프 반영 (AA 리디자인)
 - 핸드오프 zip(`_input/...handoff.zip`)의 `부평 플리마켓 디자인 시스템.dc.html` 적용.
