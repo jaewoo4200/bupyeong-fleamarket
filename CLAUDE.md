@@ -16,8 +16,8 @@ npm run build
 관리자 비밀번호(PoC): `bupyeong` (`NEXT_PUBLIC_ADMIN_PASSWORD`).
 
 ## 핵심 규칙
-- 데이터는 현재 **로컬 어댑터**(`lib/data/store.ts`, localStorage+BroadcastChannel). 운영은 Supabase(`supabase/`).
-  화면은 `lib/data/hooks.ts`(useSyncExternalStore)로 구독 — 변경 시 모든 탭 실시간 반영.
+- 데이터는 **어댑터 자동 전환**(`getStore()`): `NEXT_PUBLIC_SUPABASE_*` env 있으면 `SupabaseStore`(`lib/data/supabase-store.ts`, Postgres+Realtime), 없으면 로컬(`lib/data/store.ts`, localStorage+BroadcastChannel). 공용 인터페이스 `Store`(`lib/data/types.ts`), 공용 시드/유틸 `lib/data/seed.ts`.
+  화면은 `lib/data/hooks.ts`(useSyncExternalStore)로 구독 — 변경 시 실시간 반영. 추첨은 `drawSeat`(async); Supabase는 `claim_seat` RPC로 원자적 점유.
 - 배치도 좌표는 **자동 생성** `lib/venue/venue-layout.ts` (원본 `_input/` 엑셀에서 추출, x축 ×5.25 보정). 직접 수정 금지.
 - 추첨 로직 `lib/lottery/rules.ts`(단순 무작위), 좌석 상태/검색 `lib/data/selectors.ts`, 좌석 변형 `lib/venue/seats.ts`(순수).
 - 좌석 `code`는 엑셀 라벨(유니크, 서브좌석 `8, 8-1` 등). `palette`(빨강=벤치/파랑=의자지급)는 `lib/venue/bench.ts`.

@@ -2,6 +2,19 @@
 
 > 최신 항목을 위에 추가. 타 에이전트/세션의 컨텍스트 유지용.
 
+## 2026-06-29 (8) — Supabase 어댑터 연결 (env 스위치)
+- 공용 `Store` 인터페이스(`lib/data/types.ts`) + `getStore()` env 스위치: `NEXT_PUBLIC_SUPABASE_*` 있으면 `SupabaseStore`, 없으면 로컬.
+- `lib/data/supabase-store.ts`: 인메모리 미러 + Realtime 구독(events/sellers/draws/notes) + `claim_seat` RPC 추첨 + 빈 DB 자동 시드 + load 복원력(마이그레이션 미적용 시 빈 상태).
+- 마이그레이션을 **현재 모델**로 재작성(`supabase/migrations/0001_init.sql`): events(text[]·jsonb), sellers/draws/notes, `claim_seat`, PoC용 공개 RLS, Realtime. (좌석 좌표는 앱 상수라 DB 미저장)
+- 공용 seed/util을 `lib/data/seed.ts`로 추출, `drawSeat` async화(키오스크 await).
+- 검증: typecheck·build·test(6/6) 통과, **로컬 어댑터 추첨 회귀 OK**. Supabase 런타임 검증은 사용자가 마이그레이션 적용 후 진행.
+- GitHub 푸시 완료(noreply 이메일로 커밋 재작성). 배포 가이드 `docs/DEPLOY.md`.
+
+### 다음
+- [ ] 사용자: Supabase SQL Editor에 `0001_init.sql` 실행 → 로컬 `npm run dev` 재시작 → 추첨/실시간 검증.
+- [ ] Vercel 환경변수(3 키 + ADMIN_PASSWORD) 추가 후 Redeploy.
+- [ ] (운영) Supabase Auth + 제한 RLS로 교체(현재 PoC 공개 RLS).
+
 ## 2026-06-29 (7) — Claude Design 핸드오프 반영 (AA 리디자인)
 - 핸드오프 zip(`_input/...handoff.zip`)의 `부평 플리마켓 디자인 시스템.dc.html` 적용.
 - **토큰**(`app/globals.css`): coral-600/700 AA(#cb4618/#a93512), teal-700, rose-600, radius(xl18/2xl24), 섀도 정제,
