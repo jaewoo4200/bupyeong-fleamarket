@@ -13,7 +13,7 @@ import type {
   Weekday,
 } from "./types";
 import { categorize } from "@/lib/venue/categories";
-import { activeSeatCodes } from "@/lib/lottery/rules";
+import { activeSeatCodes, filterByTwoTables } from "@/lib/lottery/rules";
 import { splitParts } from "@/lib/venue/seats";
 import { EMPTY_DATA } from "./seed";
 import { SEED_SELLERS } from "./seed-sellers";
@@ -49,6 +49,7 @@ function mapSeller(r: Row): Seller {
     name: (r.name as string) ?? "",
     productText: (r.product_text as string) ?? "",
     categoryKey: (r.category_key as Seller["categoryKey"]) ?? "etc",
+    twoTables: Boolean(r.two_tables),
     phone: (r.phone as string) ?? undefined,
     assignedSeat: (r.assigned_seat as string) ?? null,
     drawnAt: (r.drawn_at as string) ?? null,
@@ -152,6 +153,7 @@ export class SupabaseStore implements Store {
           name: s.name,
           product_text: s.productText,
           category_key: categorize(s.productText),
+          two_tables: s.seq === 3 || s.seq === 38, // 데모 2매대 셀러
         })),
       );
       if (date === "2026-07-04") {
@@ -242,9 +244,15 @@ export class SupabaseStore implements Store {
         name: r.name,
         product_text: r.productText,
         category_key: categorize(r.productText),
+        two_tables: r.twoTables ?? false,
         phone: r.phone ?? null,
       })),
     );
+    await this.load();
+  }
+
+  async setSellerTwoTables(sellerId: string, value: boolean) {
+    await this.sb().from("sellers").update({ two_tables: value }).eq("id", sellerId);
     await this.load();
   }
 
@@ -258,7 +266,10 @@ export class SupabaseStore implements Store {
     const taken = new Set(
       this.data.sellers.filter((s) => s.eventId === eventId && s.assignedSeat).map((s) => s.assignedSeat as string),
     );
-    let candidates = activeSeatCodes(event).filter((c) => !taken.has(c));
+    let candidates = filterByTwoTables(
+      activeSeatCodes(event).filter((c) => !taken.has(c)),
+      seller.twoTables,
+    );
     const sb = this.sb();
     while (candidates.length > 0) {
       const pick = candidates[Math.floor(Math.random() * candidates.length)];
@@ -271,7 +282,9 @@ export class SupabaseStore implements Store {
       if (data === "ALREADY") throw new Error("이미 자리가 배정된 셀러입니다.");
       candidates = candidates.filter((c) => c !== pick); // TAKEN → 재시도
     }
-    throw new Error("배정 가능한 좌석이 없습니다.");
+    throw new Error(
+      seller.twoTables ? "배정 가능한 2매대(붙임석)가 없습니다." : "배정 가능한 좌석이 없습니다.",
+    );
   }
 
   async reassignSeat(eventId: string, sellerId: string, seatCode: string) {

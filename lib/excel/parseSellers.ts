@@ -6,7 +6,11 @@ export type ParsedSeller = {
   name: string;
   productText: string;
   phone?: string;
+  twoTables: boolean;
 };
+
+/** 행 어디든 "매대 2개 / 2매대 / 매대 두개" 표기가 있으면 2매대 셀러로 인식 */
+const TWO_TABLE_RE = /(2\s*매대)|(매대\s*2\s*개?)|(매대\s*두\s*개?)|매대두개/;
 
 export type ParseResult = {
   sellers: ParsedSeller[];
@@ -79,6 +83,7 @@ export function parseSellersWorkbook(buf: ArrayBuffer): ParseResult {
       name,
       productText: String(col.product >= 0 ? r[col.product] : "").trim(),
       phone: col.phone >= 0 ? String(r[col.phone]).trim() || undefined : undefined,
+      twoTables: TWO_TABLE_RE.test(r.map(String).join(" ")),
     });
   }
 

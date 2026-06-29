@@ -11,9 +11,10 @@ import type {
   CustomSeat,
   Note,
   Store,
+  SellerImportRow,
 } from "./types";
 import { categorize } from "@/lib/venue/categories";
-import { activeSeatCodes, pickSeat } from "@/lib/lottery/rules";
+import { activeSeatCodes, pickSeat, filterByTwoTables } from "@/lib/lottery/rules";
 import {
   STORAGE_KEY,
   CHANNEL,
@@ -134,10 +135,7 @@ export class DataStore implements Store {
   }
 
   // ---- sellers ----
-  importSellers(
-    eventId: string,
-    rows: { seq: number; business: string; name: string; productText: string; phone?: string }[],
-  ) {
+  importSellers(eventId: string, rows: SellerImportRow[]) {
     const sellers: Seller[] = rows.map((r) => ({
       id: uid("sel_"),
       eventId,
@@ -146,6 +144,7 @@ export class DataStore implements Store {
       name: r.name,
       productText: r.productText,
       categoryKey: categorize(r.productText),
+      twoTables: r.twoTables ?? false,
       phone: r.phone,
       assignedSeat: null,
       drawnAt: null,
@@ -154,6 +153,13 @@ export class DataStore implements Store {
       ...d,
       sellers: [...d.sellers.filter((s) => s.eventId !== eventId), ...sellers],
       draws: d.draws.filter((dr) => dr.eventId !== eventId),
+    }));
+  }
+
+  setSellerTwoTables(sellerId: string, value: boolean) {
+    this.mutate((d) => ({
+      ...d,
+      sellers: d.sellers.map((s) => (s.id === sellerId ? { ...s, twoTables: value } : s)),
     }));
   }
 
@@ -169,9 +175,15 @@ export class DataStore implements Store {
         .filter((s) => s.eventId === eventId && s.assignedSeat)
         .map((s) => s.assignedSeat as string),
     );
-    const candidates = activeSeatCodes(event).filter((c) => !taken.has(c));
+    const candidates = filterByTwoTables(
+      activeSeatCodes(event).filter((c) => !taken.has(c)),
+      seller.twoTables,
+    );
     const res = pickSeat({ candidateCodes: candidates, rand });
-    if (!res.seatCode) throw new Error("배정 가능한 좌석이 없습니다.");
+    if (!res.seatCode)
+      throw new Error(
+        seller.twoTables ? "배정 가능한 2매대(붙임석)가 없습니다." : "배정 가능한 좌석이 없습니다.",
+      );
     const seatCode = res.seatCode;
 
     const now = new Date().toISOString();

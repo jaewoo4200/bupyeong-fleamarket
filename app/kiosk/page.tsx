@@ -151,6 +151,11 @@ function KioskInner() {
                           <span className="block truncate font-bold text-ink-900">{s.business}</span>
                           <span className="block truncate text-xs text-ink-400">{s.name}</span>
                         </span>
+                        {s.twoTables && (
+                          <span className="shrink-0 rounded-full bg-coral-100 px-2 py-0.5 text-[10px] font-bold text-coral-700">
+                            2매대
+                          </span>
+                        )}
                         <span
                           className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white"
                           style={{ backgroundColor: cat.color }}
@@ -175,7 +180,10 @@ function KioskInner() {
             exit={{ opacity: 0 }}
             className="mt-8 flex flex-col items-center text-center"
           >
-            <Badge variant="coral">{selectedLive.seq}번 셀러</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="coral">{selectedLive.seq}번 셀러</Badge>
+              {selectedLive.twoTables && <Badge variant="gold">2매대(붙임석)</Badge>}
+            </div>
             <h2 className="mt-3 text-2xl font-extrabold text-ink-900">{selectedLive.business}</h2>
             <p className="text-ink-400">{selectedLive.name}</p>
 

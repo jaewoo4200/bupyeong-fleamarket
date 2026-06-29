@@ -47,7 +47,7 @@ export function UploadCard({ eventId }: { eventId: string }) {
         <h3 className="font-bold text-ink-900">셀러 명단 업로드</h3>
       </div>
       <p className="mt-1 text-sm text-ink-400">
-        참가자리스트 엑셀(.xlsx)을 올리면 번호·상호·이름·취급상품을 자동 인식하고 카테고리·향제한을 분류합니다.
+        참가자리스트 엑셀(.xlsx)을 올리면 번호·상호·이름·취급상품을 자동 인식하고 카테고리·2매대(붙임석)를 분류합니다.
       </p>
 
       <input

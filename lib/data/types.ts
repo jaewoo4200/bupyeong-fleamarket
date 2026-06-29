@@ -47,6 +47,8 @@ export type Seller = {
   name: string;
   productText: string;
   categoryKey: CategoryKey;
+  /** 2매대(붙임석) 사용 셀러 — 붙임석만 추첨됨 */
+  twoTables: boolean;
   phone?: string;
   assignedSeat?: string | null;
   drawnAt?: string | null;
@@ -100,6 +102,7 @@ export type SellerImportRow = {
   name: string;
   productText: string;
   phone?: string;
+  twoTables?: boolean;
 };
 
 /** 로컬/Supabase 어댑터 공통 인터페이스 (화면은 이것만 의존) */
@@ -114,6 +117,7 @@ export interface Store {
   drawSeat(eventId: string, sellerId: string): Promise<DrawResult>;
   reassignSeat(eventId: string, sellerId: string, seatCode: string): void;
   clearAssignment(eventId: string, sellerId: string): void;
+  setSellerTwoTables(sellerId: string, value: boolean): void;
   setSeatActive(eventId: string, seatCode: string, active: boolean): void;
   /** 여러 좌석을 한 번에 활성/비활성 (일괄 제외) */
   setSeatsActive(eventId: string, codes: string[], active: boolean): void;

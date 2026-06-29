@@ -10,6 +10,15 @@ export function activeSeatCodes(event: EventConfig): string[] {
 }
 
 /**
+ * 셀러 유형에 맞는 좌석만 남긴다.
+ *  - 2매대 셀러: 붙임석(결합석, 코드에 "," 포함)만
+ *  - 일반 셀러: 단독석(콤마 없는 코드)만
+ */
+export function filterByTwoTables(codes: string[], twoTables: boolean): string[] {
+  return codes.filter((c) => (twoTables ? c.includes(",") : !c.includes(",")));
+}
+
+/**
  * 후보 좌석 중 하나를 무작위로 고른다.
  * @param rand 0~1 난수 생성기 (테스트 주입용)
  */

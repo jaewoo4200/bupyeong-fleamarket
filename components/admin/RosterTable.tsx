@@ -36,6 +36,7 @@ export function RosterTable({
             <th className="px-3 py-2.5 font-semibold">번호</th>
             <th className="px-3 py-2.5 font-semibold">상호 / 이름</th>
             <th className="px-3 py-2.5 font-semibold">카테고리</th>
+            <th className="px-3 py-2.5 font-semibold">2매대</th>
             <th className="px-3 py-2.5 font-semibold">배정 자리</th>
             <th className="px-3 py-2.5"></th>
           </tr>
@@ -57,6 +58,19 @@ export function RosterTable({
                   >
                     {cat.label}
                   </span>
+                </td>
+                <td className="px-3 py-2">
+                  <button
+                    onClick={() => store.setSellerTwoTables(s.id, !s.twoTables)}
+                    className={
+                      s.twoTables
+                        ? "rounded-full bg-coral-100 px-2 py-1 text-xs font-semibold text-coral-700"
+                        : "rounded-full bg-cream-100 px-2 py-1 text-xs font-semibold text-ink-400"
+                    }
+                    title="클릭하여 2매대(붙임석) 셀러 토글"
+                  >
+                    {s.twoTables ? "2매대 ●" : "1매대"}
+                  </button>
                 </td>
                 <td className="px-3 py-2">
                   <Select
@@ -97,7 +111,7 @@ export function RosterTable({
           })}
           {sellers.length === 0 && (
             <tr>
-              <td colSpan={5} className="px-3 py-10 text-center text-sm text-ink-400">
+              <td colSpan={6} className="px-3 py-10 text-center text-sm text-ink-400">
                 명단이 비어 있습니다. 위에서 엑셀을 업로드하세요.
               </td>
             </tr>

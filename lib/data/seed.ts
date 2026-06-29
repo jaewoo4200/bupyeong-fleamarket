@@ -40,6 +40,9 @@ export function makeEvent(date: string, weekday: Weekday, name: string): EventCo
   };
 }
 
+// 데모: 2매대(붙임석) 사용 셀러 예시 (실데이터는 엑셀 자동인식/명단 토글로 지정)
+const DEMO_TWO_TABLE_SEQS = new Set([3, 38]);
+
 export function seedSellersFor(eventId: string): Seller[] {
   return SEED_SELLERS.map((s) => ({
     id: uid("sel_"),
@@ -49,6 +52,7 @@ export function seedSellersFor(eventId: string): Seller[] {
     name: s.name,
     productText: s.productText,
     categoryKey: categorize(s.productText),
+    twoTables: DEMO_TWO_TABLE_SEQS.has(s.seq),
     assignedSeat: null,
     drawnAt: null,
   }));
