@@ -111,7 +111,7 @@ function SellerCard({ seller, data }: { seller: Seller; data: ReturnType<typeof 
               </p>
               {dir && (
                 <p className="mt-1 flex items-start gap-1.5 text-sm text-ink-700">
-                  <MapPin className="mt-0.5 size-4 shrink-0 text-coral-500" />
+                  <MapPin className="mt-0.5 size-4 shrink-0 text-coral-600" />
                   {dir.text}
                 </p>
               )}

@@ -49,7 +49,7 @@ export default function Home() {
               <h1 className="mt-4 text-4xl font-extrabold leading-[1.12] tracking-tight text-ink-900 sm:text-5xl">
                 플리마켓 자리,
                 <br />
-                <span className="text-coral-500">터치 한 번</span>으로
+                <span className="text-coral-600">터치 한 번</span>으로
                 <br />
                 공정하게.
               </h1>
@@ -125,7 +125,7 @@ export default function Home() {
                   key={s.title}
                   className="rounded-2xl border border-cream-200 bg-white p-6 shadow-soft"
                 >
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-coral-50 text-coral-500">
+                  <div className="flex size-11 items-center justify-center rounded-xl bg-coral-50 text-coral-600">
                     <s.icon className="size-5" />
                   </div>
                   <h3 className="mt-4 text-lg font-bold text-ink-900">{s.title}</h3>

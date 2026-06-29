@@ -104,7 +104,7 @@ function AdminInner() {
           >
             <t.icon className="size-4" /> {t.label}
             {t.key === "notes" && openNotes > 0 && (
-              <span className="ml-0.5 rounded-full bg-coral-500 px-1.5 text-[10px] font-bold text-white tnum">
+              <span className="ml-0.5 rounded-full bg-coral-600 px-1.5 text-[10px] font-bold text-white tnum">
                 {openNotes}
               </span>
             )}
@@ -241,7 +241,7 @@ function Overview({ event, sellers }: { event: EventConfig; sellers: Seller[] })
           </div>
           <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-cream-200">
             <div
-              className="h-full rounded-full bg-coral-500 transition-all"
+              className="h-full rounded-full bg-coral-600 transition-all"
               style={{ width: `${progress.total ? (progress.drawn / progress.total) * 100 : 0}%` }}
             />
           </div>
@@ -279,7 +279,7 @@ function Overview({ event, sellers }: { event: EventConfig; sellers: Seller[] })
         {/* 오늘 근무 */}
         <div className="rounded-2xl border border-cream-200 bg-white p-4">
           <h4 className="flex items-center gap-1.5 text-sm font-bold text-ink-900">
-            <Users2 className="size-4 text-coral-500" /> 오늘 근무
+            <Users2 className="size-4 text-coral-600" /> 오늘 근무
           </h4>
           {staff.length === 0 ? (
             <p className="mt-2 text-sm text-ink-400">등록된 근무자가 없습니다 ({event.date}).</p>

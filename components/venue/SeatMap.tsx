@@ -139,8 +139,8 @@ export function SeatMap({
         const cy = s.y + s.h / 2;
         const showName = showOccupantNames && assigned && !!occupant;
         const numFont = showName
-          ? Math.min(s.h * 0.34, 7.5)
-          : Math.min(s.h * 0.52, s.w * 0.7, 12);
+          ? Math.min(s.h * 0.38, 8)
+          : Math.min(s.h * 0.62, s.w * 0.8, 14);
 
         return (
           <g
@@ -185,7 +185,7 @@ export function SeatMap({
             )}
             {/* 벤치/의자 구분 표식: 좌하단 점 (배정 좌석에서도 보이도록) */}
             {!inactive && s.palette !== "none" && (
-              <circle cx={s.x + 1.8} cy={s.y + s.h - 1.8} r={1.2} fill={BENCH_SOLID[s.palette]} stroke="#ffffff" strokeWidth={0.3} />
+              <circle cx={s.x + 1.9} cy={s.y + s.h - 1.9} r={1.35} fill={BENCH_SOLID[s.palette]} stroke="#ffffff" strokeWidth={0.6} />
             )}
             <text
               x={cx}

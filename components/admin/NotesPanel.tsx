@@ -48,7 +48,7 @@ export function NotesPanel({ eventId }: { eventId: string }) {
     <div className="mx-auto max-w-2xl">
       <div className="rounded-2xl border border-cream-200 bg-white p-5">
         <div className="flex items-center gap-2">
-          <StickyNote className="size-5 text-coral-500" />
+          <StickyNote className="size-5 text-coral-600" />
           <h3 className="font-bold text-ink-900">현장 메모</h3>
           <span className="text-sm text-ink-400">미처리 {open}건</span>
         </div>

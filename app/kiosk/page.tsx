@@ -94,7 +94,7 @@ function KioskInner() {
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-coral-500">자리 추첨</p>
+          <p className="text-sm font-semibold text-coral-600">자리 추첨</p>
           <h1 className="text-xl font-extrabold tracking-tight text-ink-900">{event.name}</h1>
         </div>
         <div className="text-right">
@@ -189,7 +189,7 @@ function KioskInner() {
               <SeatRoulette
                 running={phase === "drawing"}
                 final={null}
-                className="text-6xl font-black leading-none text-coral-500"
+                className="text-6xl font-black leading-none text-coral-600"
               />
             </motion.div>
 
@@ -244,25 +244,39 @@ function RevealCard({
       key="revealed"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mt-8 flex flex-col items-center text-center"
+      className="mt-6 flex flex-col items-center text-center"
     >
+      <p className="text-lg font-extrabold text-coral-600">🎉 추첨 완료</p>
+      <Badge variant="neutral" className="mt-1.5">
+        {seller.seq}번 셀러
+      </Badge>
+
+      {/* 흰 티켓 — 좌석 번호 분리(임팩트) */}
       <motion.div
-        initial={{ scale: 0.5, rotate: -8 }}
+        initial={{ scale: 0.6, rotate: -6 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: "spring", stiffness: 220, damping: 14 }}
-        className="relative flex size-48 flex-col items-center justify-center overflow-hidden rounded-[2rem] px-3 text-center text-white shadow-pop"
-        style={{ backgroundColor: cat.color }}
+        className="relative mt-5 w-60 overflow-hidden rounded-[2rem] bg-white shadow-pop"
       >
-        <span className="text-sm font-semibold opacity-90">배정 좌석</span>
-        <span className={cn("font-black leading-none tnum", seatFontClass(result.seatCode))}>
-          {result.seatCode}
-        </span>
+        <div className="h-2 w-full" style={{ backgroundColor: cat.color }} />
+        <div className="flex flex-col items-center px-4 py-6">
+          <span className="text-sm font-semibold text-ink-400">배정 좌석</span>
+          <span
+            className={cn("font-black leading-none tracking-tight text-ink-900 tnum", seatFontClass(result.seatCode))}
+          >
+            {result.seatCode}
+          </span>
+          <span
+            className="mt-3 rounded-full px-2.5 py-1 text-[11px] font-bold text-white"
+            style={{ backgroundColor: cat.color }}
+          >
+            {cat.label}
+          </span>
+        </div>
       </motion.div>
 
       <h2 className="mt-6 text-2xl font-extrabold text-ink-900">{seller.business}</h2>
-      <p className="text-ink-400">
-        {seller.name} · {cat.label}
-      </p>
+      <p className="text-ink-500">{seller.name}</p>
 
       {dir && (
         <p className="mt-4 max-w-md rounded-xl bg-cream-100 px-4 py-2.5 text-sm font-medium text-ink-700">

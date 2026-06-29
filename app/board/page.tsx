@@ -31,7 +31,7 @@ export default function BoardPage() {
           <>
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-coral-500">실시간 추첨 현황</p>
+                <p className="text-sm font-semibold text-coral-600">실시간 추첨 현황</p>
                 <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink-900">
                   {event.name}
                 </h1>
@@ -50,7 +50,7 @@ export default function BoardPage() {
 
             <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-cream-200">
               <div
-                className="h-full rounded-full bg-coral-500 transition-all duration-500"
+                className="h-full rounded-full bg-coral-600 transition-all duration-500"
                 style={{ width: `${progress.total ? (progress.drawn / progress.total) * 100 : 0}%` }}
               />
             </div>

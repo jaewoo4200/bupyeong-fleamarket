@@ -9,9 +9,9 @@ const badgeVariants = cva(
       variant: {
         neutral: "bg-cream-200 text-ink-700",
         coral: "bg-coral-100 text-coral-700",
-        teal: "bg-teal-100 text-teal-600",
-        gold: "bg-[#fbf0d2] text-gold-500",
-        rose: "bg-[#fde3e4] text-rose-500",
+        teal: "bg-teal-100 text-teal-700",
+        gold: "bg-[#fbf0d2] text-[#8a5e12]",
+        rose: "bg-[#fde3e4] text-[#b3262a]",
         outline: "border border-cream-300 text-ink-700",
       },
     },

@@ -2,6 +2,16 @@
 
 > 최신 항목을 위에 추가. 타 에이전트/세션의 컨텍스트 유지용.
 
+## 2026-06-29 (7) — Claude Design 핸드오프 반영 (AA 리디자인)
+- 핸드오프 zip(`_input/...handoff.zip`)의 `부평 플리마켓 디자인 시스템.dc.html` 적용.
+- **토큰**(`app/globals.css`): coral-600/700 AA(#cb4618/#a93512), teal-700, rose-600, radius(xl18/2xl24), 섀도 정제,
+  시맨틱 토큰(`--action/--accent-action/--danger/--text*/--focus-ring`) + 벤치 토큰.
+- **카테고리 14색**(`categories.ts`) AA 팔레트로 교체, **벤치색**(`bench.ts`) red #e5392b / blue #1683c9 (+틴트).
+- **컴포넌트**: 버튼(action 색·터치 ≥44px·radius12·focus-ring), 배지 텍스트 AA 심화, 카드 radius24, 인풋 44px·focus-ring.
+  코랄 텍스트/포인트 accent를 coral-600으로 상향(AA).
+- **배치도**: 좌석 번호 +30%, 벤치점 흰 링 강화. **추첨 결과**: 🎉 헤더 + N번 셀러 + 흰 티켓(번호 분리) + 카테고리 칩.
+- 검증: typecheck·build(무경고)·test(6/6) 통과. Preview로 랜딩·키오스크 reveal·배치도 확인.
+
 ## 2026-06-29 (6) — 디자인 킷 export (Claude Design 핸드오프)
 - 이 환경은 Claude Design 자동 푸시 권한 부여 불가(`/design-login` 대화형 터미널 필요). 대신 **로컬 디자인 킷 번들** 생성.
 - `design-system/`: foundations(colors·typography·elevation) + components(buttons·badges·cards·inputs·logo·legend·seat-states·seat-map·draw-reveal) HTML 카드(`@dsCard`), 토큰 인라인·단독 렌더. assets에 로고 복사.

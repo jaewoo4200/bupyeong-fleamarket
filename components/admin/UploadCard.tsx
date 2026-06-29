@@ -76,7 +76,7 @@ export function UploadCard({ eventId }: { eventId: string }) {
         <div className="mt-4 rounded-xl border border-cream-200 bg-cream-50 p-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-bold text-ink-900">
-              미리보기 · <span className="text-coral-500">{preview.sellers.length}명</span>{" "}
+              미리보기 · <span className="text-coral-600">{preview.sellers.length}명</span>{" "}
               <span className="font-normal text-ink-400">(시트: {preview.sheetName})</span>
             </p>
             <button onClick={() => setPreview(null)} className="text-ink-300 hover:text-ink-500">

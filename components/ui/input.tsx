@@ -7,8 +7,8 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
       ref={ref}
       type={type}
       className={cn(
-        "flex h-10 w-full rounded-lg border border-cream-300 bg-white px-3.5 py-2 text-sm text-ink-900 shadow-sm transition-colors",
-        "placeholder:text-ink-300 focus-visible:border-coral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral-100",
+        "flex h-11 w-full rounded-lg border border-cream-300 bg-white px-3.5 py-2 text-sm text-ink-900 shadow-sm transition-colors",
+        "placeholder:text-ink-300 focus-visible:border-coral-400 focus-visible:outline-none focus-visible:[box-shadow:var(--focus-ring)]",
         "disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
@@ -37,8 +37,8 @@ export const Select = React.forwardRef<
   <select
     ref={ref}
     className={cn(
-      "flex h-10 w-full rounded-lg border border-cream-300 bg-white px-3 py-2 text-sm text-ink-900 shadow-sm",
-      "focus-visible:border-coral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral-100",
+      "flex h-11 w-full rounded-lg border border-cream-300 bg-white px-3 py-2 text-sm text-ink-900 shadow-sm",
+      "focus-visible:border-coral-400 focus-visible:outline-none focus-visible:[box-shadow:var(--focus-ring)]",
       className,
     )}
     {...props}

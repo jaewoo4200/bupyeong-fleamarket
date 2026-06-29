@@ -16,16 +16,16 @@ export function seatNeedsChair(p: SeatPalette): boolean {
   return p !== "none" && p !== BENCH_COLOR;
 }
 
-/** 박스 진한 색 (코너 표식용) */
+/** 박스 진한 색 (코너 표식용) — AA 대비 보정 */
 export const BENCH_SOLID: Record<SeatPalette, string> = {
-  red: "#FF0000",
-  blue: "#00B0F0",
+  red: "#e5392b",
+  blue: "#1683c9",
   none: "#cdba9c",
 };
 /** 빈 좌석 배경 연한 틴트 */
 export const BENCH_TINT: Record<SeatPalette, string> = {
-  red: "#ffe7e7",
-  blue: "#e1f5fe",
+  red: "#fdeae7",
+  blue: "#e9f3fb",
   none: "#ffffff",
 };
 
