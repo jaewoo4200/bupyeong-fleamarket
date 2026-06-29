@@ -115,6 +115,8 @@ export interface Store {
   reassignSeat(eventId: string, sellerId: string, seatCode: string): void;
   clearAssignment(eventId: string, sellerId: string): void;
   setSeatActive(eventId: string, seatCode: string, active: boolean): void;
+  /** 여러 좌석을 한 번에 활성/비활성 (일괄 제외) */
+  setSeatsActive(eventId: string, codes: string[], active: boolean): void;
   setSeatType(eventId: string, seatCode: string, type: SeatType): void;
   setSeatSplit(eventId: string, comboCode: string, split: boolean): void;
   addCustomSeat(eventId: string, seat: CustomSeat): void;

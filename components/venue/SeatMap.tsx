@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { SEATS, LANDMARKS, type LandmarkKind, type SeatGeo } from "@/lib/venue/venue-layout";
 import { boundsFor, viewBoxStr, BAND1_BOUNDS, BAND2_BOUNDS } from "@/lib/venue/bounds";
 import { getCategory } from "@/lib/venue/categories";
@@ -19,6 +20,9 @@ export type SeatMapProps = {
   showOccupantNames?: boolean;
   /** 렌더할 좌석 목록 (기본 정적 SEATS). 결합석 분리·커스텀 좌석 반영 시 effectiveSeats 전달. */
   seats?: SeatGeo[];
+  /** 드래그 영역 선택(일괄 제외). 드래그한 사각형 안 좌석 코드를 전달. */
+  lasso?: boolean;
+  onLasso?: (codes: string[]) => void;
   className?: string;
 };
 
@@ -45,29 +49,86 @@ export function SeatMap({
   view = "all",
   showOccupantNames = false,
   seats = SEATS,
+  lasso = false,
+  onLasso,
   className,
 }: SeatMapProps) {
   const viewBox = viewBoxStr(boundsFor(view));
+  const [box, setBox] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
+  const boxRef = useRef<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
+  const dragging = useRef(false);
+  const setBoth = (b: { x0: number; y0: number; x1: number; y1: number } | null) => {
+    boxRef.current = b;
+    setBox(b);
+  };
 
   const inBand = (band: 1 | 2) => view === "all" || band === (view === "band1" ? 1 : 2);
   const visibleSeats = seats.filter((s) => inBand(s.band));
   const visibleLandmarks = LANDMARKS.filter((l) => inBand(l.band));
 
+  function toViewBox(e: React.PointerEvent<SVGSVGElement> | React.MouseEvent<SVGSVGElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const [vx, vy, vw, vh] = viewBox.split(" ").map(Number);
+    return {
+      x: vx + ((e.clientX - rect.left) / rect.width) * vw,
+      y: vy + ((e.clientY - rect.top) / rect.height) * vh,
+    };
+  }
+
   function handleSvgClick(e: React.MouseEvent<SVGSVGElement>) {
     if (!onMapClick) return;
-    const svg = e.currentTarget;
-    const rect = svg.getBoundingClientRect();
-    const [vx, vy, vw, vh] = viewBox.split(" ").map(Number);
-    const x = vx + ((e.clientX - rect.left) / rect.width) * vw;
-    const y = vy + ((e.clientY - rect.top) / rect.height) * vh;
+    const { x, y } = toViewBox(e);
     onMapClick(x, y);
+  }
+
+  function onDown(e: React.PointerEvent<SVGSVGElement>) {
+    if (!lasso) return;
+    dragging.current = true;
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+    const { x, y } = toViewBox(e);
+    setBoth({ x0: x, y0: y, x1: x, y1: y });
+  }
+  function onMove(e: React.PointerEvent<SVGSVGElement>) {
+    if (!lasso || !dragging.current) return;
+    const { x, y } = toViewBox(e);
+    const b = boxRef.current;
+    if (b) setBoth({ ...b, x1: x, y1: y });
+  }
+  function onUp() {
+    if (!lasso || !dragging.current) return;
+    dragging.current = false;
+    const box = boxRef.current;
+    if (box && onLasso) {
+      const lx = Math.min(box.x0, box.x1), rx = Math.max(box.x0, box.x1);
+      const ty = Math.min(box.y0, box.y1), by = Math.max(box.y0, box.y1);
+      const hit = visibleSeats
+        .filter((s) => {
+          const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
+          return cx >= lx && cx <= rx && cy >= ty && cy <= by;
+        })
+        .map((s) => s.code);
+      if (hit.length) onLasso(hit);
+    }
+    setBoth(null);
   }
 
   return (
     <svg
       viewBox={viewBox}
       onClick={onMapClick ? handleSvgClick : undefined}
-      className={cn("h-full w-full select-none", onMapClick && "cursor-crosshair", className)}
+      onPointerDown={lasso ? onDown : undefined}
+      onPointerMove={lasso ? onMove : undefined}
+      onPointerUp={lasso ? onUp : undefined}
+      className={cn(
+        "h-full w-full select-none",
+        (onMapClick || lasso) && "cursor-crosshair",
+        lasso && "touch-none",
+        className,
+      )}
       role="img"
       aria-label="부평 문화의거리 플리마켓 자리배치도"
     >
@@ -85,8 +146,8 @@ export function SeatMap({
         const vertical = l.h > l.w * 1.5;
         const labelLen = Math.max(1, l.label.replace(/·/g, "").length);
         const fontSize = vertical
-          ? Math.max(3.2, Math.min(l.w * 0.6, 6))
-          : Math.max(4.5, Math.min(l.h * 0.42, (l.w * 0.92) / (labelLen * 0.62), 9));
+          ? Math.max(4, Math.min(l.w * 0.78, 9))
+          : Math.max(6, Math.min(l.h * 0.62, (l.w * 0.96) / (labelLen * 0.6), 16));
         const cx = l.x + l.w / 2;
         const cy = l.y + l.h / 2;
         return (
@@ -139,8 +200,9 @@ export function SeatMap({
         const cy = s.y + s.h / 2;
         const showName = showOccupantNames && assigned && !!occupant;
         const numFont = showName
-          ? Math.min(s.h * 0.38, 8)
+          ? Math.min(s.h * 0.34, 6)
           : Math.min(s.h * 0.62, s.w * 0.8, 14);
+        const nameFont = Math.min(s.h * 0.46, (s.w * 0.95) / 3.2, 8);
 
         return (
           <g
@@ -203,21 +265,37 @@ export function SeatMap({
             {showName && occupant && (
               <text
                 x={cx}
-                y={s.y + s.h * 0.72}
-                fontSize={Math.min(s.h * 0.3, 3.6)}
+                y={s.y + s.h * 0.7}
+                fontSize={nameFont}
+                fontWeight={700}
                 fill="#ffffff"
                 textAnchor="middle"
                 dominantBaseline="central"
                 style={{ pointerEvents: "none" }}
               >
-                {occupant.business.length > 5
-                  ? occupant.business.slice(0, 5) + "…"
+                {occupant.business.length > 4
+                  ? occupant.business.slice(0, 4) + "…"
                   : occupant.business}
               </text>
             )}
           </g>
         );
       })}
+
+      {/* 드래그 선택 사각형 (일괄 제외) */}
+      {box && (
+        <rect
+          x={Math.min(box.x0, box.x1)}
+          y={Math.min(box.y0, box.y1)}
+          width={Math.abs(box.x1 - box.x0)}
+          height={Math.abs(box.y1 - box.y0)}
+          fill="rgba(236,94,46,0.12)"
+          stroke="#ec5e2e"
+          strokeWidth={1}
+          strokeDasharray="4 3"
+          style={{ pointerEvents: "none" }}
+        />
+      )}
     </svg>
   );
 }

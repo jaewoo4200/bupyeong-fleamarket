@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { TreePine, Ban, Check, Plus, MousePointerClick, Trash2, Link2, Unlink } from "lucide-react";
+import { TreePine, Ban, Check, Plus, MousePointerClick, Trash2, Link2, Unlink, BoxSelect } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VenueMapViewer } from "@/components/venue/VenueMapViewer";
 import { StatusLegend } from "@/components/venue/Legend";
@@ -11,15 +11,21 @@ import { effectiveSeats, COMBO_SEATS, isComboSeat, splitParts } from "@/lib/venu
 import { BAND1_MAX_Y } from "@/lib/venue/venue-layout";
 import type { CustomSeat, EventConfig, Seller } from "@/lib/data/types";
 
-type Mode = "edit" | "add";
+type Mode = "edit" | "add" | "bulk";
 
 export function SeatConfigMap({ event, sellers }: { event: EventConfig; sellers: Seller[] }) {
   const store = useStore();
   const [mode, setMode] = useState<Mode>("edit");
   const [selected, setSelected] = useState<string | null>(null);
+  const [bulkRestore, setBulkRestore] = useState(false); // false=제외, true=다시 사용
 
   const states = useMemo(() => buildSeatStates(event, sellers), [event, sellers]);
   const effSeats = useMemo(() => effectiveSeats(event), [event]);
+
+  const codesByNum = (a: number, b: number) =>
+    effSeats.filter((s) => s.num >= a && s.num <= b).map((s) => s.code);
+  const codesByBand = (band: 1 | 2) => effSeats.filter((s) => s.band === band).map((s) => s.code);
+  const applyBulk = (codes: string[], active = bulkRestore) => store.setSeatsActive(event.id, codes, active);
   const seat = effSeats.find((s) => s.code === selected);
   const st = selected ? states[selected] : null;
 
@@ -55,18 +61,60 @@ export function SeatConfigMap({ event, sellers }: { event: EventConfig; sellers:
           <ModeBtn active={mode === "add"} onClick={() => setMode("add")} icon={Plus}>
             좌석 추가 (지도 탭)
           </ModeBtn>
+          <ModeBtn active={mode === "bulk"} onClick={() => setMode("bulk")} icon={BoxSelect}>
+            일괄 제외 (드래그)
+          </ModeBtn>
           {mode === "add" && (
             <span className="self-center text-xs font-medium text-coral-600">
               지도의 빈 곳을 탭하면 새 좌석이 생깁니다.
             </span>
           )}
         </div>
+
+        {/* 일괄 제외 툴바 */}
+        {mode === "bulk" && (
+          <div className="mb-2 rounded-xl border border-cream-200 bg-cream-50 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-ink-500">동작</span>
+              <div className="flex overflow-hidden rounded-lg border border-cream-300">
+                <button
+                  onClick={() => setBulkRestore(false)}
+                  className={"px-3 py-1 text-xs font-semibold " + (!bulkRestore ? "bg-rose-600 text-white" : "bg-white text-ink-500")}
+                >
+                  추첨 제외
+                </button>
+                <button
+                  onClick={() => setBulkRestore(true)}
+                  className={"px-3 py-1 text-xs font-semibold " + (bulkRestore ? "bg-teal-600 text-white" : "bg-white text-ink-500")}
+                >
+                  다시 사용
+                </button>
+              </div>
+              <span className="text-xs text-ink-400">
+                지도를 <b className="text-ink-600">드래그</b>해 영역 안 좌석을 {bulkRestore ? "복구" : "제외"}하세요.
+              </span>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <span className="self-center text-xs font-semibold text-ink-500">빠른 선택:</span>
+              <BulkChip onClick={() => applyBulk(codesByNum(57, 80), false)}>57~80 제외</BulkChip>
+              <BulkChip onClick={() => applyBulk(codesByNum(45, 80), false)}>45~80 제외</BulkChip>
+              <BulkChip onClick={() => applyBulk(codesByBand(1), false)}>윗구간 제외</BulkChip>
+              <BulkChip onClick={() => applyBulk(codesByBand(2), false)}>아랫구간 제외</BulkChip>
+              <BulkChip onClick={() => store.updateEvent(event.id, { inactiveSeatCodes: [] })} tone="teal">
+                전체 사용(초기화)
+              </BulkChip>
+            </div>
+          </div>
+        )}
+
         <VenueMapViewer
           states={states}
           seats={effSeats}
           highlightCode={selected}
           onSeatClick={mode === "edit" ? (code) => setSelected(code) : undefined}
           onMapClick={mode === "add" ? handleAdd : undefined}
+          lasso={mode === "bulk"}
+          onLasso={mode === "bulk" ? (codes) => applyBulk(codes) : undefined}
         />
         <div className="mt-3 rounded-xl border border-cream-200 bg-white p-3">
           <StatusLegend />
@@ -197,6 +245,30 @@ function ModeBtn({
       }
     >
       <Icon className="size-3.5" /> {children}
+    </button>
+  );
+}
+
+function BulkChip({
+  onClick,
+  tone = "rose",
+  children,
+}: {
+  onClick: () => void;
+  tone?: "rose" | "teal";
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={
+        "rounded-full px-2.5 py-1 text-xs font-semibold transition-colors " +
+        (tone === "teal"
+          ? "bg-teal-100 text-teal-700 hover:bg-teal-100/70"
+          : "bg-white text-ink-700 ring-1 ring-cream-300 hover:bg-cream-100")
+      }
+    >
+      {children}
     </button>
   );
 }

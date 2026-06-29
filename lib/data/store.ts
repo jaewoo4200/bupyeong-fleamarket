@@ -270,6 +270,28 @@ export class DataStore implements Store {
     }));
   }
 
+  /** 여러 좌석 일괄 활성/비활성 (드래그·범위 일괄 제외) */
+  setSeatsActive(eventId: string, codes: string[], active: boolean) {
+    if (codes.length === 0) return;
+    const codeSet = new Set(codes);
+    this.mutate((d) => ({
+      ...d,
+      events: d.events.map((e) => {
+        if (e.id !== eventId) return e;
+        const set = new Set(e.inactiveSeatCodes);
+        for (const c of codes) (active ? set.delete(c) : set.add(c));
+        return { ...e, inactiveSeatCodes: [...set] };
+      }),
+      sellers: active
+        ? d.sellers
+        : d.sellers.map((s) =>
+            s.eventId === eventId && s.assignedSeat && codeSet.has(s.assignedSeat)
+              ? { ...s, assignedSeat: null, drawnAt: null }
+              : s,
+          ),
+    }));
+  }
+
   setSeatType(eventId: string, seatCode: string, type: "table" | "wood") {
     this.mutate((d) => ({
       ...d,

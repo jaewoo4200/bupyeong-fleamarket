@@ -325,6 +325,19 @@ export class SupabaseStore implements Store {
     await this.load();
   }
 
+  async setSeatsActive(eventId: string, codes: string[], active: boolean) {
+    if (codes.length === 0) return;
+    const sb = this.sb();
+    const ev = this.data.events.find((e) => e.id === eventId);
+    if (!ev) return;
+    const set = new Set(ev.inactiveSeatCodes);
+    for (const c of codes) active ? set.delete(c) : set.add(c);
+    await sb.from("events").update({ inactive_seat_codes: [...set] }).eq("id", eventId);
+    if (!active)
+      await sb.from("sellers").update({ assigned_seat: null, drawn_at: null }).eq("event_id", eventId).in("assigned_seat", codes);
+    await this.load();
+  }
+
   async setSeatType(eventId: string, seatCode: string, type: "table" | "wood") {
     const ev = this.data.events.find((e) => e.id === eventId);
     if (!ev) return;
