@@ -1,0 +1,39 @@
+<!-- @dsCard group="Components" name="Cards" subtitle="기본 카드 · 통계 · 진행바" -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Cards</title>
+<style>
+  @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendard-dynamic-subset.min.css");
+  :root { --cream-50:#fdfbf7; --cream-100:#f8f3ea; --cream-200:#efe7d7; --ink-400:#978a7c; --ink-500:#756a5e; --ink-900:#2a2320; --coral-500:#ec5e2e; --coral-50:#fff3ee; --teal-50:#e9f8f4; --teal-600:#0e7e69; --shadow-card:0 2px 4px rgba(42,35,32,.05),0 12px 32px rgba(42,35,32,.08); --shadow-soft:0 1px 2px rgba(42,35,32,.04),0 4px 16px rgba(42,35,32,.06); }
+  * { box-sizing:border-box; }
+  body { font-family:"Pretendard Variable",Pretendard,system-ui,sans-serif; background:var(--cream-50); color:var(--ink-900); margin:0; padding:28px; display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; }
+  .card { border:1px solid var(--cream-200); background:#fff; border-radius:1.75rem; box-shadow:var(--shadow-card); padding:20px; width:280px; }
+  .ttl { font-size:18px; font-weight:700; margin:0; }
+  .desc { font-size:14px; color:var(--ink-500); margin:4px 0 0; }
+  .stat { font-size:30px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .stat small { font-size:18px; color:var(--ink-400); }
+  .bar { height:8px; background:var(--cream-200); border-radius:9999px; overflow:hidden; margin-top:12px; }
+  .fill { height:100%; width:45%; background:var(--coral-500); border-radius:9999px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; background:var(--teal-50); color:var(--teal-600); border-radius:8px; padding:8px 12px; font-size:13px; font-weight:600; margin-top:12px; }
+  .tri { display:flex; gap:8px; margin-top:14px; }
+  .tri > div { flex:1; border:1px solid var(--cream-200); border-radius:.875rem; padding:10px; text-align:center; }
+  .tri b { font-size:18px; font-weight:800; } .tri span { font-size:11px; color:var(--ink-400); display:block; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <p class="ttl">셀러 명단 업로드</p>
+    <p class="desc">참가자리스트 엑셀을 올리면 카테고리를 자동 분류합니다.</p>
+  </div>
+  <div class="card">
+    <div class="stat">18<small>/40</small></div>
+    <p class="desc">자리 배정 완료</p>
+    <div class="bar"><div class="fill"></div></div>
+    <div class="chip">🪑 의자 지급 필요 40석</div>
+    <div class="tri"><div><b>8</b><span>제외</span></div><div><b>1</b><span>2매대 분리</span></div><div><b>2</b><span>추가</span></div></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!-- @dsCard group="Venue" name="Seat states" subtitle="빈/배정/나무/제외/벤치" -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Seat states</title>
+<style>
+  @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendard-dynamic-subset.min.css");
+  :root { --cream-50:#fdfbf7; --cream-300:#e2d5bf; --ink-400:#978a7c; --ink-700:#4a4039; --coral-500:#ec5e2e; }
+  * { box-sizing:border-box; }
+  body { font-family:"Pretendard Variable",Pretendard,system-ui,sans-serif; background:var(--cream-50); margin:0; padding:28px; }
+  .grid { display:flex; flex-wrap:wrap; gap:22px; }
+  .cell { width:64px; }
+  .seat { position:relative; height:54px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; font-variant-numeric:tabular-nums; border:1px solid var(--cream-300); }
+  .seat .num { font-size:20px; }
+  .bench { position:absolute; left:5px; bottom:5px; width:8px; height:8px; border-radius:9999px; border:1px solid #fff; }
+  .woodbar { position:absolute; left:0; top:0; right:0; height:5px; border-radius:8px 8px 0 0; background:#A9744F; }
+  .nameseat { flex-direction:column; gap:2px; color:#fff; }
+  .nameseat .num { font-size:15px; } .nameseat .biz { font-size:9px; font-weight:600; }
+  .cap { font-size:11px; color:var(--ink-700); text-align:center; margin-top:6px; }
+  .ring { box-shadow:0 0 0 2px var(--coral-500); }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="cell"><div class="seat" style="background:#ffe7e7;color:var(--ink-700)"><span class="num">4</span><span class="bench" style="background:#ff0000"></span></div><div class="cap">빈자리 · 벤치</div></div>
+    <div class="cell"><div class="seat" style="background:#e1f5fe;color:var(--ink-700)"><span class="num">5</span><span class="bench" style="background:#00b0f0"></span></div><div class="cap">빈자리 · 의자지급</div></div>
+    <div class="cell"><div class="seat nameseat" style="background:#E86CA6"><span class="num">8</span><span class="biz">만달</span><span class="bench" style="background:#ff0000"></span></div><div class="cap">배정됨</div></div>
+    <div class="cell"><div class="seat" style="background:#ffe7e7;color:var(--ink-700)"><span class="woodbar"></span><span class="num">73</span><span class="bench" style="background:#ff0000"></span></div><div class="cap">나무매대</div></div>
+    <div class="cell"><div class="seat ring" style="background:#4C8DD6;color:#fff"><span class="num">27</span><span class="bench" style="background:#00b0f0"></span></div><div class="cap">하이라이트</div></div>
+    <div class="cell"><div class="seat" style="background:#f8f3ea;color:#b4a89b;opacity:.55"><span class="num">28</span></div><div class="cap">추첨 제외</div></div>
+  </div>
+</body>
+</html>

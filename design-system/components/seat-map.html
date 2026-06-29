@@ -1,0 +1,74 @@
+<!-- @dsCard group="Venue" name="Seat map (sample)" subtitle="자리배치도 시각 언어" -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Seat map sample</title>
+<style>
+  @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendard-dynamic-subset.min.css");
+  :root { --cream-50:#fdfbf7; --cream-200:#efe7d7; --ink-400:#978a7c; }
+  body { font-family:"Pretendard Variable",Pretendard,system-ui,sans-serif; background:var(--cream-50); margin:0; padding:24px; }
+  .frame { border:1px solid var(--cream-200); background:#fff; border-radius:18px; padding:10px; max-width:560px; }
+  .cap { font-size:11px; color:var(--ink-400); padding:2px 4px 8px; font-weight:600; }
+  svg { width:100%; height:auto; display:block; }
+  text { font-family:"Pretendard Variable",Pretendard,system-ui,sans-serif; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="cap">윗구간 — 문화의거리 입구 ~ 중앙무대</div>
+    <svg viewBox="0 0 360 150" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="26" width="352" height="98" rx="8" fill="#fdf0e8"/>
+      <!-- top stores -->
+      <g fill="#fff" stroke="#efe7d7" stroke-width="0.6">
+        <rect x="10" y="6" width="60" height="20" rx="2"/><rect x="78" y="6" width="70" height="20" rx="2"/>
+        <rect x="156" y="6" width="60" height="20" rx="2"/><rect x="224" y="6" width="64" height="20" rx="2"/>
+      </g>
+      <g font-size="8" fill="#978a7c" text-anchor="middle">
+        <text x="40" y="19">LG U+</text><text x="113" y="19">맥도날드</text><text x="186" y="19">라코스테</text><text x="256" y="19">꼼빠니아</text>
+      </g>
+      <!-- north seats -->
+      <g>
+        <SEATROW/>
+      </g>
+      <!-- 중앙무대 -->
+      <rect x="330" y="40" width="22" height="70" rx="3" fill="#2a2320"/>
+      <text x="341" y="75" font-size="8" fill="#fdfbf7" text-anchor="middle" transform="rotate(-90 341 75)">중앙무대</text>
+      <!-- bottom stores -->
+      <g fill="#fff" stroke="#efe7d7" stroke-width="0.6">
+        <rect x="10" y="126" width="70" height="20" rx="2"/><rect x="88" y="126" width="60" height="20" rx="2"/><rect x="156" y="126" width="66" height="20" rx="2"/>
+      </g>
+      <g font-size="8" fill="#978a7c" text-anchor="middle">
+        <text x="45" y="139">금강제화</text><text x="118" y="139">나이키</text><text x="189" y="139">FILA</text>
+      </g>
+    </svg>
+  </div>
+<script>
+  // seat rows rendered via JS for brevity
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.querySelector("svg");
+  const placeholder = svg.querySelector("SEATROW") || [...svg.querySelectorAll("*")].find(e=>e.tagName.toLowerCase()==="seatrow");
+  const cat = { "8":"#E86CA6", "9":"#4CAF6E" };
+  function seat(x,y,code,fill,bench,white){
+    const g=document.createElementNS(ns,"g");
+    const r=document.createElementNS(ns,"rect");
+    r.setAttribute("x",x);r.setAttribute("y",y);r.setAttribute("width",24);r.setAttribute("height",20);r.setAttribute("rx",3);
+    r.setAttribute("fill",fill);r.setAttribute("stroke","#e2d5bf");r.setAttribute("stroke-width",0.6);g.appendChild(r);
+    const t=document.createElementNS(ns,"text");
+    t.setAttribute("x",x+12);t.setAttribute("y",y+13);t.setAttribute("font-size",9);t.setAttribute("font-weight",800);
+    t.setAttribute("text-anchor","middle");t.setAttribute("fill",white?"#fff":"#4a4039");t.textContent=code;g.appendChild(t);
+    const d=document.createElementNS(ns,"circle");
+    d.setAttribute("cx",x+3.5);d.setAttribute("cy",y+16.5);d.setAttribute("r",2);d.setAttribute("fill",bench);d.setAttribute("stroke","#fff");d.setAttribute("stroke-width",.5);g.appendChild(d);
+    return g;
+  }
+  const north=[["76","#ffe7e7","#ff0000",false],["75","#e1f5fe","#00b0f0",false],["74","#ffe7e7","#ff0000",false],["73","#e1f5fe","#00b0f0",false],["72","#ffe7e7","#ff0000",false],["71","#e1f5fe","#00b0f0",false]];
+  const south=[["1","#ffe7e7","#ff0000",false],["2","#e1f5fe","#00b0f0",false],["3","#ffe7e7","#ff0000",false],["8","#E86CA6","#ff0000",true],["9","#4CAF6E","#00b0f0",true],["10","#ffe7e7","#ff0000",false]];
+  let x=14;
+  for(const s of north){ svg.appendChild(seat(x,40,...s)); x+=44; }
+  x=14;
+  for(const s of south){ svg.appendChild(seat(x,90,...s)); x+=44; }
+  if(placeholder) placeholder.remove();
+</script>
+</body>
+</html>

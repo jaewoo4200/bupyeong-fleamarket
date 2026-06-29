@@ -1,0 +1,29 @@
+<!-- @dsCard group="Foundations" name="Typography" subtitle="Pretendard 스케일" -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Typography</title>
+<style>
+  @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendard-dynamic-subset.min.css");
+  :root { --cream-50:#fdfbf7; --ink-400:#978a7c; --ink-500:#756a5e; --ink-900:#2a2320; --coral-500:#ec5e2e; }
+  * { box-sizing:border-box; }
+  body { font-family:"Pretendard Variable",Pretendard,system-ui,sans-serif; background:var(--cream-50); color:var(--ink-900); margin:0; padding:28px; }
+  .row { display:flex; align-items:baseline; gap:16px; padding:10px 0; border-bottom:1px solid #efe7d7; }
+  .meta { width:150px; font-size:11px; color:var(--ink-400); flex-shrink:0; font-variant-numeric:tabular-nums; }
+  .ex { color:var(--ink-900); }
+  .tnum { font-variant-numeric:tabular-nums; }
+</style>
+</head>
+<body>
+  <div class="row"><div class="meta">Display · 48 / 800</div><div class="ex" style="font-size:48px;font-weight:800;letter-spacing:-.02em;line-height:1.1">터치 한 번으로 <span style="color:var(--coral-500)">공정하게</span></div></div>
+  <div class="row"><div class="meta">H1 · 36 / 800</div><div class="ex" style="font-size:36px;font-weight:800;letter-spacing:-.02em">부평 문화의거리 플리마켓</div></div>
+  <div class="row"><div class="meta">H2 · 24 / 800</div><div class="ex" style="font-size:24px;font-weight:800;letter-spacing:-.01em">자리배치도</div></div>
+  <div class="row"><div class="meta">H3 · 18 / 700</div><div class="ex" style="font-size:18px;font-weight:700">현장 메모</div></div>
+  <div class="row"><div class="meta">Body · 16 / 400</div><div class="ex" style="font-size:16px;line-height:1.6">종이 번호표를 접어 통에서 뽑던 자리 추첨을 디지털로.</div></div>
+  <div class="row"><div class="meta">Small · 14 / 500</div><div class="ex" style="font-size:14px;font-weight:500;color:var(--ink-500)">이름 또는 상호로 검색하세요.</div></div>
+  <div class="row"><div class="meta">Caption · 12 / 600</div><div class="ex" style="font-size:12px;font-weight:600;color:var(--ink-400)">매주 금·토·일 · 부평 문화의거리</div></div>
+  <div class="row"><div class="meta">Numeral · tabular</div><div class="ex tnum" style="font-size:40px;font-weight:900;color:var(--coral-500)">34, 34-1</div></div>
+</body>
+</html>

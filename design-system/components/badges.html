@@ -1,0 +1,33 @@
+<!-- @dsCard group="Components" name="Badges" subtitle="상태 칩 6종" -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Badges</title>
+<style>
+  @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendard-dynamic-subset.min.css");
+  :root { --cream-50:#fdfbf7; --cream-200:#efe7d7; --cream-300:#e2d5bf; --ink-400:#978a7c; --ink-700:#4a4039; --coral-100:#ffe2d6; --coral-700:#b33a14; --teal-100:#c9efe6; --teal-600:#0e7e69; --gold-500:#d99e2b; --rose-500:#e5484d; }
+  * { box-sizing:border-box; }
+  body { font-family:"Pretendard Variable",Pretendard,system-ui,sans-serif; background:var(--cream-50); margin:0; padding:28px; }
+  .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .badge { display:inline-flex; align-items:center; gap:4px; border-radius:9999px; padding:2px 10px; font-size:12px; font-weight:600; }
+  .neutral { background:var(--cream-200); color:var(--ink-700); }
+  .coral { background:var(--coral-100); color:var(--coral-700); }
+  .teal { background:var(--teal-100); color:var(--teal-600); }
+  .gold { background:#fbf0d2; color:var(--gold-500); }
+  .rose { background:#fde3e4; color:var(--rose-500); }
+  .outline { border:1px solid var(--cream-300); color:var(--ink-700); }
+</style>
+</head>
+<body>
+  <div class="row">
+    <span class="badge neutral">준비중</span>
+    <span class="badge coral">● 추첨 진행중</span>
+    <span class="badge gold">추첨 마감</span>
+    <span class="badge teal">완료</span>
+    <span class="badge rose">제외</span>
+    <span class="badge outline">토요일 · 플리마켓</span>
+  </div>
+</body>
+</html>

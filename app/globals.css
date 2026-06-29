@@ -1,26 +1,100 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendard-dynamic-subset.min.css");
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+  부평 문화의거리 플리마켓 — 디자인 시스템
+  무드: 따뜻한 마켓 + 조각보(patchwork) 컬러. 부평구문화재단 CI 모티브 참고.
+*/
+
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, ui-sans-serif, system-ui, -apple-system,
+    "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+
+  /* 배경/잉크 (warm neutrals) */
+  --color-cream-50: #fdfbf7;
+  --color-cream-100: #f8f3ea;
+  --color-cream-200: #efe7d7;
+  --color-cream-300: #e2d5bf;
+  --color-sand-400: #cdba9c;
+  --color-ink-300: #b4a89b;
+  --color-ink-400: #978a7c;
+  --color-ink-500: #756a5e;
+  --color-ink-700: #4a4039;
+  --color-ink-900: #2a2320;
+
+  /* 프라이머리 (coral / terracotta) */
+  --color-coral-50: #fff3ee;
+  --color-coral-100: #ffe2d6;
+  --color-coral-200: #ffc4ad;
+  --color-coral-300: #ff9e7a;
+  --color-coral-400: #f77a4f;
+  --color-coral-500: #ec5e2e;
+  --color-coral-600: #d8481c;
+  --color-coral-700: #b33a14;
+
+  /* 액센트 (teal) */
+  --color-teal-50: #e9f8f4;
+  --color-teal-100: #c9efe6;
+  --color-teal-300: #5fccb4;
+  --color-teal-400: #2bb89e;
+  --color-teal-500: #149e84;
+  --color-teal-600: #0e7e69;
+
+  /* 상태색 */
+  --color-gold-400: #e9b949;
+  --color-gold-500: #d99e2b;
+  --color-rose-500: #e5484d;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.75rem;
+
+  --shadow-soft: 0 1px 2px rgba(42, 35, 32, 0.04), 0 4px 16px rgba(42, 35, 32, 0.06);
+  --shadow-card: 0 2px 4px rgba(42, 35, 32, 0.05), 0 12px 32px rgba(42, 35, 32, 0.08);
+  --shadow-pop: 0 8px 24px rgba(236, 94, 46, 0.18), 0 2px 6px rgba(42, 35, 32, 0.08);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background-color: var(--color-cream-50);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background-color: var(--color-coral-200);
+    color: var(--color-ink-900);
+  }
+  .tnum {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* 은은한 점 패턴 배경 (마켓 무드) */
+.bg-market-dots {
+  background-image: radial-gradient(var(--color-cream-300) 1px, transparent 1px);
+  background-size: 22px 22px;
 }
+
+/* 추첨 통 흔들림 */
+@keyframes wobble {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-6deg); }
+  40% { transform: rotate(5deg); }
+  60% { transform: rotate(-4deg); }
+  80% { transform: rotate(3deg); }
+}
+.animate-wobble { animation: wobble 0.6s ease-in-out infinite; }
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(236, 94, 46, 0.45); }
+  70% { box-shadow: 0 0 0 14px rgba(236, 94, 46, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(236, 94, 46, 0); }
+}
+.animate-pulse-ring { animation: pulse-ring 1.6s ease-out infinite; }

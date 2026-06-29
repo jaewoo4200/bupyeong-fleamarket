@@ -1,0 +1,35 @@
+<!-- @dsCard group="Components" name="Inputs" subtitle="Input · Select · Label" -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Inputs</title>
+<style>
+  @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendard-dynamic-subset.min.css");
+  :root { --cream-50:#fdfbf7; --cream-100:#f8f3ea; --cream-300:#e2d5bf; --ink-300:#b4a89b; --ink-700:#4a4039; --ink-900:#2a2320; --coral-100:#ffe2d6; --coral-400:#f77a4f; }
+  * { box-sizing:border-box; }
+  body { font-family:"Pretendard Variable",Pretendard,system-ui,sans-serif; background:var(--cream-50); color:var(--ink-900); margin:0; padding:28px; max-width:420px; }
+  label { font-size:14px; font-weight:600; color:var(--ink-700); display:block; margin:16px 0 6px; }
+  .field { display:flex; height:40px; width:100%; border-radius:.625rem; border:1px solid var(--cream-300); background:#fff; padding:8px 14px; font-size:14px; align-items:center; box-shadow:0 1px 1px rgba(42,35,32,.03); }
+  .field.focus { border-color:var(--coral-400); box-shadow:0 0 0 3px var(--coral-100); }
+  .ph { color:var(--ink-300); }
+  .search { position:relative; }
+  .search .field { padding-left:38px; height:48px; }
+  .search svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--ink-300); }
+</style>
+</head>
+<body>
+  <label>비밀번호</label>
+  <div class="field"><span>••••••••</span></div>
+  <label>이름 · 상호 검색</label>
+  <div class="search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <div class="field"><span class="ph">예: 김은미, 만달</span></div>
+  </div>
+  <label>요일 (Select)</label>
+  <div class="field" style="justify-content:space-between">토요일 <span class="ph">▾</span></div>
+  <label>포커스 상태</label>
+  <div class="field focus"><span>입력 중…</span></div>
+</body>
+</html>

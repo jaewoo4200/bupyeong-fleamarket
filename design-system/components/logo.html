@@ -1,0 +1,39 @@
+<!-- @dsCard group="Brand" name="Logo" subtitle="헤더 로고 · 주최/운영" -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Logo</title>
+<style>
+  @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendard-dynamic-subset.min.css");
+  :root { --cream-50:#fdfbf7; --cream-200:#efe7d7; --ink-400:#978a7c; --ink-900:#2a2320; }
+  * { box-sizing:border-box; }
+  body { font-family:"Pretendard Variable",Pretendard,system-ui,sans-serif; background:var(--cream-50); color:var(--ink-900); margin:0; padding:28px; }
+  h2 { font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-400); margin:0 0 12px; }
+  .logo { display:inline-flex; align-items:center; gap:10px; }
+  .logo img { height:36px; width:auto; }
+  .wm { display:flex; flex-direction:column; line-height:1; }
+  .wm b { font-size:15px; font-weight:800; letter-spacing:-.01em; }
+  .wm span { font-size:11px; color:var(--ink-400); margin-top:3px; }
+  .partners { display:flex; gap:28px; align-items:center; margin-top:28px; }
+  .p { display:flex; align-items:center; gap:10px; }
+  .p span { font-size:11px; font-weight:600; color:var(--ink-400); }
+  .p .cs { height:36px; } .p .wb { height:34px; border-radius:8px; }
+  hr { border:0; border-top:1px solid var(--cream-200); margin:24px 0; }
+</style>
+</head>
+<body>
+  <h2>App header</h2>
+  <div class="logo">
+    <img src="../assets/cultural-street-icon.png" alt="부평 문화의거리" />
+    <span class="wm"><b>부평 플리마켓</b><span>문화의거리 자리 추첨</span></span>
+  </div>
+  <hr />
+  <h2>주최 · 운영</h2>
+  <div class="partners">
+    <div class="p"><span>주최</span><img class="cs" src="../assets/cultural-street.png" alt="부평 문화의거리" /></div>
+    <div class="p"><span>운영</span><img class="wb" src="../assets/webrothers.png" alt="위브라더스" /></div>
+  </div>
+</body>
+</html>
