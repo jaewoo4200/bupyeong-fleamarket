@@ -21,7 +21,8 @@ npm run build
 - 배치도 좌표는 **자동 생성** `lib/venue/venue-layout.ts` (원본 `_input/` 엑셀에서 추출, x축 ×5.25 보정). 직접 수정 금지.
 - 추첨 로직 `lib/lottery/rules.ts`(단순 무작위), 좌석 상태/검색 `lib/data/selectors.ts`, 좌석 변형 `lib/venue/seats.ts`(순수).
 - 좌석 `code`는 엑셀 라벨(유니크, 서브좌석 `8, 8-1` 등). `palette`(빨강=벤치/파랑=의자지급)는 `lib/venue/bench.ts`.
-- **유효 좌석**은 항상 `effectiveSeats(event)` 사용: 결합석 분리(`splitSeatCodes`)·임의 좌석(`customSeats`)·비활성(`inactiveSeatCodes`) 반영.
+- **유효 좌석**은 항상 `effectiveSeats(event)` 사용: 결합석 분리(`splitSeatCodes`)·임의 좌석(`customSeats`)·비활성(`inactiveSeatCodes`) 반영. 일괄 제외는 `setSeatsActive`.
+- **2매대 매칭**(`filterByTwoTables`): `seller.twoTables`면 붙임석(결합석, 코드에 `,`)만, 아니면 단독석만 추첨. `twoTables`는 엑셀 '매대 2개' 자동인식 + 명단 토글.
 - 버스킹/근무표는 `lib/data/{busking,staff}.ts`(행사일 기준 조회, 데모 6·7월). 향제한 기능은 제거됨.
 
 ## 작업 시

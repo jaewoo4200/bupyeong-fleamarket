@@ -2,6 +2,13 @@
 
 > 최신 항목을 위에 추가. 타 에이전트/세션의 컨텍스트 유지용.
 
+## 2026-06-30 (9) — 일괄 제외 UI · 큰 라벨 · 2매대 매칭
+- **일괄 추첨 제외**: `자리 설정 → 일괄 제외(드래그)`. SeatMap 포인터 드래그 lasso(터치/마우스) + 빠른 칩(57~80·45~80·윗/아랫구간·전체 초기화). `Store.setSeatsActive` 일괄 op(양 어댑터).
+- **배치도 라벨 확대**: 매장명 상한 9→16(폭 맞춤), 좌석 셀 상호명 글자 확대.
+- **2매대(붙임석) 매칭**: `Seller.twoTables`(엑셀 '매대 2개' 자동인식 + 명단 토글). 추첨 규칙 — 2매대 셀러→붙임석만, 일반 셀러→단독석만(`filterByTwoTables`). 붙임석은 두 번호 묶여 한 번에 배정(기존). 마이그레이션 `0002_two_tables.sql`.
+- 검증: typecheck·build·test(6/6). 로컬에서 lasso/프리셋 제외, 2매대 셀러→`38,38-1`·일반→`58` 확인.
+- ⚠️ 사용자: Supabase에 **0002_two_tables.sql 실행** 후 push→redeploy.
+
 ## 2026-06-29 (8) — Supabase 어댑터 연결 (env 스위치)
 - 공용 `Store` 인터페이스(`lib/data/types.ts`) + `getStore()` env 스위치: `NEXT_PUBLIC_SUPABASE_*` 있으면 `SupabaseStore`, 없으면 로컬.
 - `lib/data/supabase-store.ts`: 인메모리 미러 + Realtime 구독(events/sellers/draws/notes) + `claim_seat` RPC 추첨 + 빈 DB 자동 시드 + load 복원력(마이그레이션 미적용 시 빈 상태).
