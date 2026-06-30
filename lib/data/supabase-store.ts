@@ -17,7 +17,7 @@ import type {
 import { categorize } from "@/lib/venue/categories";
 import { activeSeatCodes, filterByTwoTables } from "@/lib/lottery/rules";
 import { splitParts } from "@/lib/venue/seats";
-import { EMPTY_DATA } from "./seed";
+import { EMPTY_DATA, weekdayFromDate } from "./seed";
 import { SEED_SELLERS } from "./seed-sellers";
 import { SEED_BUSKING } from "./busking";
 import { SEED_STAFF } from "./staff";
@@ -293,6 +293,41 @@ export class SupabaseStore implements Store {
         phone: r.phone ?? null,
       })),
     );
+    await this.load();
+  }
+
+  async importSellersForDate(date: string, rows: SellerImportRow[]) {
+    const sb = this.sb();
+    let eventId = this.data.events.find((e) => e.date === date)?.id;
+    if (!eventId) {
+      const wd = weekdayFromDate(date);
+      const { data } = await sb
+        .from("events")
+        .insert({ date, weekday: wd, event_type: "fleamarket", name: `${date} (${wd}) 플리마켓`, status: "draft", count_wood: 0, count_table: 80, count_chair: 80 })
+        .select()
+        .single();
+      if (!data?.id) {
+        await this.load();
+        return;
+      }
+      eventId = data.id as string;
+    }
+    await sb.from("sellers").delete().eq("event_id", eventId);
+    await sb.from("draws").delete().eq("event_id", eventId);
+    await sb.from("sellers").insert(
+      rows.map((r) => ({
+        event_id: eventId,
+        seq: r.seq,
+        business: r.business,
+        name: r.name,
+        product_text: r.productText,
+        category_key: categorize(r.productText),
+        two_tables: r.twoTables ?? false,
+        phone: r.phone ?? null,
+      })),
+    );
+    this.currentEventId = eventId;
+    if (typeof window !== "undefined") localStorage.setItem(CURRENT_KEY, eventId);
     await this.load();
   }
 

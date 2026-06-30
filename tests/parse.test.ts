@@ -22,3 +22,10 @@ test("실제 셀러 엑셀(_input)을 파싱한다", () => {
   assert.equal(first.business, "숑누나손뜨개");
   assert.equal(first.name, "김은미");
 });
+
+test("셀러 엑셀 상단 셀(A1)에서 행사 날짜를 인식한다", () => {
+  const buf = readFileSync("_input/마켓 오티용품.xlsx");
+  const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+  const res = parseSellersWorkbook(ab as ArrayBuffer);
+  assert.equal(res.date, "2026-06-28"); // A1 = 엑셀 일련번호 46201
+});

@@ -135,6 +135,8 @@ export interface Store {
   createEvent(input: { date: string; weekday: Weekday; eventType: EventType; name?: string }): void;
   updateEvent(id: string, patch: Partial<EventConfig>): void;
   importSellers(eventId: string, rows: SellerImportRow[]): void;
+  /** 엑셀에서 인식한 날짜로 행사를 찾거나(없으면 생성) 명단을 일괄 적용하고 그 행사를 현재로 선택 */
+  importSellersForDate(date: string, rows: SellerImportRow[]): void;
   drawSeat(eventId: string, sellerId: string): Promise<DrawResult>;
   reassignSeat(eventId: string, sellerId: string, seatCode: string): void;
   clearAssignment(eventId: string, sellerId: string): void;

@@ -1,18 +1,21 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Upload, FileSpreadsheet, Check, X } from "lucide-react";
+import { Upload, FileSpreadsheet, Check, X, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { parseSellersFile, type ParseResult } from "@/lib/excel/parseSellers";
 import { categorize, getCategory } from "@/lib/venue/categories";
-import { useStore } from "@/lib/data/hooks";
+import { weekdayFromDate } from "@/lib/data/seed";
+import { useAppData, useStore } from "@/lib/data/hooks";
 
 export function UploadCard({ eventId }: { eventId: string }) {
   const store = useStore();
+  const data = useAppData();
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<ParseResult | null>(null);
   const [fileName, setFileName] = useState("");
+  const [date, setDate] = useState(""); // 엑셀에서 인식/수정한 행사 날짜
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
@@ -22,6 +25,7 @@ export function UploadCard({ eventId }: { eventId: string }) {
     try {
       const res = await parseSellersFile(file);
       setPreview(res);
+      setDate(res.date ?? "");
       setFileName(file.name);
     } catch (e) {
       setError(e instanceof Error ? e.message : "파일을 읽을 수 없습니다.");
@@ -30,11 +34,15 @@ export function UploadCard({ eventId }: { eventId: string }) {
 
   function commit() {
     if (!preview) return;
-    store.importSellers(eventId, preview.sellers);
+    if (date) store.importSellersForDate(date, preview.sellers);
+    else store.importSellers(eventId, preview.sellers);
     setDone(true);
     setPreview(null);
+    setDate("");
     if (inputRef.current) inputRef.current.value = "";
   }
+
+  const existingForDate = date ? data.events.find((e) => e.date === date) : undefined;
 
   const breakdown = preview
     ? countBy(preview.sellers.map((s) => categorize(s.productText)))
@@ -47,7 +55,7 @@ export function UploadCard({ eventId }: { eventId: string }) {
         <h3 className="font-bold text-ink-900">셀러 명단 업로드</h3>
       </div>
       <p className="mt-1 text-sm text-ink-400">
-        참가자리스트 엑셀(.xlsx)을 올리면 번호·상호·이름·취급상품을 자동 인식하고 카테고리·2매대(붙임석)를 분류합니다.
+        참가자리스트 엑셀(.xlsx)을 올리면 번호·상호·이름·취급상품과 <b>행사 날짜</b>를 자동 인식하고 카테고리·2매대(붙임석)를 분류합니다. 그 날짜의 행사가 없으면 자동으로 새로 만들어 적용합니다.
       </p>
 
       <input
@@ -79,9 +87,35 @@ export function UploadCard({ eventId }: { eventId: string }) {
               미리보기 · <span className="text-coral-600">{preview.sellers.length}명</span>{" "}
               <span className="font-normal text-ink-400">(시트: {preview.sheetName})</span>
             </p>
-            <button onClick={() => setPreview(null)} className="text-ink-300 hover:text-ink-500">
+            <button onClick={() => { setPreview(null); setDate(""); }} className="text-ink-300 hover:text-ink-500">
               <X className="size-4" />
             </button>
+          </div>
+
+          {/* 엑셀에서 인식한 행사 날짜 */}
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-[#d9e7f5] bg-[#f3f9ff] px-3 py-2">
+            <CalendarDays className="size-4 text-[#1683c9]" />
+            <span className="text-sm font-semibold text-ink-700">행사 날짜</span>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="h-8 rounded-lg border border-cream-300 bg-white px-2 text-sm text-ink-900 focus-visible:border-coral-400 focus-visible:outline-none"
+            />
+            {date ? (
+              <span className="text-xs text-ink-500">
+                ({weekdayFromDate(date)}) ·{" "}
+                {existingForDate ? (
+                  <span className="font-semibold text-teal-700">기존 행사에 적용</span>
+                ) : (
+                  <span className="font-semibold text-coral-700">새 행사 자동 생성</span>
+                )}
+              </span>
+            ) : (
+              <span className="text-xs text-ink-400">
+                날짜를 못 읽었어요 — 비워두면 현재 선택된 행사에 적용됩니다.
+              </span>
+            )}
           </div>
 
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -129,9 +163,11 @@ export function UploadCard({ eventId }: { eventId: string }) {
             </table>
           </div>
 
-          <div className="mt-3 flex items-center gap-2">
-            <Button onClick={commit}>이 명단으로 교체</Button>
-            <p className="text-xs text-ink-400">기존 명단·추첨 결과는 초기화됩니다.</p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button onClick={commit}>
+              {date && !existingForDate ? "새 행사로 명단 만들기" : "이 명단으로 교체"}
+            </Button>
+            <p className="text-xs text-ink-400">해당 행사의 기존 명단·추첨 결과는 초기화됩니다.</p>
           </div>
         </div>
       )}

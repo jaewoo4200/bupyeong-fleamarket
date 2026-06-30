@@ -23,6 +23,7 @@ import {
   seedData,
   normalizeData,
   comboCodeMatches,
+  weekdayFromDate,
 } from "./seed";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { SupabaseStore } from "./supabase-store";
@@ -154,6 +155,54 @@ export class DataStore implements Store {
       sellers: [...d.sellers.filter((s) => s.eventId !== eventId), ...sellers],
       draws: d.draws.filter((dr) => dr.eventId !== eventId),
     }));
+  }
+
+  /** 엑셀 날짜로 행사 찾기/생성 후 명단 일괄 적용 + 현재 행사로 선택 (원자적) */
+  importSellersForDate(date: string, rows: SellerImportRow[]) {
+    this.mutate((d) => {
+      let events = d.events;
+      let ev = events.find((e) => e.date === date);
+      if (!ev) {
+        const weekday = weekdayFromDate(date);
+        ev = {
+          id: uid("evt_"),
+          date,
+          weekday,
+          eventType: "fleamarket",
+          name: `${date} (${weekday}) 플리마켓`,
+          status: "draft",
+          countWood: 0,
+          countTable: 80,
+          countChair: 80,
+          woodSeatCodes: [],
+          inactiveSeatCodes: [],
+          splitSeatCodes: [],
+          customSeats: [],
+        };
+        events = [...events, ev];
+      }
+      const eid = ev.id;
+      const sellers: Seller[] = rows.map((r) => ({
+        id: uid("sel_"),
+        eventId: eid,
+        seq: r.seq,
+        business: r.business,
+        name: r.name,
+        productText: r.productText,
+        categoryKey: categorize(r.productText),
+        twoTables: r.twoTables ?? false,
+        phone: r.phone,
+        assignedSeat: null,
+        drawnAt: null,
+      }));
+      return {
+        ...d,
+        events,
+        sellers: [...d.sellers.filter((s) => s.eventId !== eid), ...sellers],
+        draws: d.draws.filter((dr) => dr.eventId !== eid),
+        currentEventId: eid,
+      };
+    });
   }
 
   setSellerTwoTables(sellerId: string, value: boolean) {

@@ -16,7 +16,45 @@ export type ParseResult = {
   sellers: ParsedSeller[];
   sheetName: string;
   skipped: number;
+  /** 상단 셀에서 인식한 행사 날짜(YYYY-MM-DD). 없으면 undefined */
+  date?: string;
 };
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/** 엑셀 날짜 일련번호 → ISO. 날짜로 보기 어려운 값은 undefined */
+function excelSerialToISO(n: number): string | undefined {
+  if (n <= 30000 || n >= 80000) return undefined; // 대략 2008~2119 범위만 날짜로 인정
+  const d = XLSX.SSF.parse_date_code(n);
+  if (!d || !d.y || d.y < 2000 || d.y > 2100) return undefined;
+  return `${d.y}-${pad(d.m)}-${pad(d.d)}`;
+}
+
+/** 셀 값(숫자 일련번호 / Date / 날짜 문자열)에서 ISO 날짜 추출 */
+function dateFromCell(v: unknown): string | undefined {
+  if (typeof v === "number") return excelSerialToISO(v);
+  if (v instanceof Date && !isNaN(v.getTime())) return `${v.getFullYear()}-${pad(v.getMonth() + 1)}-${pad(v.getDate())}`;
+  if (typeof v === "string") {
+    const m = v.trim().match(/(20\d{2})\s*[.\-/년]\s*(\d{1,2})\s*[.\-/월]\s*(\d{1,2})/);
+    if (m) {
+      const mo = +m[2], d = +m[3];
+      if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) return `${m[1]}-${pad(mo)}-${pad(d)}`;
+    }
+  }
+  return undefined;
+}
+
+/** 시트 상단(앞 2행 × 앞 3열)에서 행사 날짜를 탐지 */
+function detectDate(rows: (string | number | Date)[][]): string | undefined {
+  for (let i = 0; i < Math.min(rows.length, 2); i++) {
+    const r = rows[i] ?? [];
+    for (let j = 0; j < Math.min(r.length, 3); j++) {
+      const d = dateFromCell(r[j]);
+      if (d) return d;
+    }
+  }
+  return undefined;
+}
 
 const HEADER_HINTS = {
   seq: ["번호", "no", "순번"],
@@ -36,12 +74,15 @@ function matchCol(header: string, hints: string[]): boolean {
  * 헤더 행(상호·이름 포함)을 자동 탐지하고 번호/상호/이름/취급상품/전화 열을 매핑.
  */
 export function parseSellersWorkbook(buf: ArrayBuffer): ParseResult {
+  // cellDates는 일부 날짜를 자정 직전(타임존/엑셀 epoch 오차)으로 반올림해 하루가 어긋나므로,
+  // raw 일련번호로 읽어 SSF로 정확히 변환한다.
   const wb = XLSX.read(buf, { type: "array" });
   const sheetName =
     wb.SheetNames.find((n) => /참가|명단|셀러|리스트/.test(n) && !/추첨/.test(n)) ??
     wb.SheetNames[0];
   const ws = wb.Sheets[sheetName];
   const rows = XLSX.utils.sheet_to_json<(string | number)[]>(ws, { header: 1, defval: "" });
+  const date = detectDate(rows);
 
   // 헤더 행 탐지
   let headerRow = -1;
@@ -87,7 +128,7 @@ export function parseSellersWorkbook(buf: ArrayBuffer): ParseResult {
     });
   }
 
-  return { sellers, sheetName, skipped };
+  return { sellers, sheetName, skipped, date };
 }
 
 export async function parseSellersFile(file: File): Promise<ParseResult> {

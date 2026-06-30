@@ -2,6 +2,12 @@
 
 > 최신 항목을 위에 추가. 타 에이전트/세션의 컨텍스트 유지용.
 
+## 2026-06-30 (14) — 엑셀 업로드 시 행사 날짜 자동 인식 + 행사 자동 생성/선택
+- **날짜 인식**: `parseSellersWorkbook`이 시트 상단(앞 2행×3열, 보통 A1)의 엑셀 날짜 일련번호/날짜셀/문자열을 읽어 `ParseResult.date`(YYYY-MM-DD)로 반환. `cellDates`는 타임존/epoch 오차로 하루가 밀려 raw 일련번호+`SSF.parse_date_code`로 정확히 변환(실파일 A1=46201 → 2026-06-28 일).
+- **행사 자동 생성/선택**: `Store.importSellersForDate(date, rows)`(양 어댑터) — 같은 날짜 행사가 있으면 그 행사에 명단 교체, 없으면 `weekdayFromDate`로 요일 계산해 새 행사(플리마켓, draft) 생성 → 상단 드롭다운에 추가 + 현재 행사로 선택. 날짜 미인식 시 기존처럼 선택된 행사에 적용(폴백).
+- **UploadCard**: 미리보기에 ‘행사 날짜’ 표시(편집 가능)+요일+신규/기존 안내, 버튼 카피 분기(‘새 행사로 명단 만들기’/‘이 명단으로 교체’).
+- 검증: typecheck·build·test(18/18, A1 날짜 인식 테스트 추가). 로컬 프리뷰 E2E — 실제 엑셀 업로드(public 임시 서빙)→날짜 2026-06-28 인식→새 행사 생성·자동선택·40명 적용, 재업로드 시 ‘기존 행사에 적용’(중복 없음) 확인. 콘솔 에러 0.
+
 ## 2026-06-30 (13) — 현장 명단 편집(셀러 추가/수정/삭제 + 2매대 변동 대비)
 - **Store 셀러 CRUD**(양 어댑터): `addSeller(eventId, row)` / `updateSeller(sellerId, patch)` / `removeSeller(sellerId)`. `updateSeller`는 `productText` 변경 시 `categoryKey` 자동 재계산. SupabaseStore는 insert/update/delete 후 load.
 - **명단 인라인 편집 UI**(`components/admin/RosterTable.tsx`): 상단 ‘셀러 추가’ 폼(번호 자동·상호·이름·취급상품·연락처·2매대, 카테고리 라이브 미리보기) + 행별 ‘수정’(상호/이름/취급상품/번호/연락처/2매대 인라인 편집, 저장/취소) + ‘삭제’(확인). 2매대는 표에서 즉시 토글 + 편집 폼에서도 변경 가능(현장 변동 대비).

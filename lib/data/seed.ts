@@ -24,6 +24,14 @@ export function comboCodeMatches(comboCode: string, assignedSeat: string): boole
   return assignedSeat === comboCode || splitParts(comboCode).includes(assignedSeat);
 }
 
+/** 날짜(YYYY-MM-DD) → 요일. 금/일은 정확히, 그 외(주중 등)는 토로 기본 처리(플리마켓은 주말 운영). */
+export function weekdayFromDate(date: string): Weekday {
+  const [y, m, d] = date.split("-").map(Number);
+  if (!y || !m || !d) return "토";
+  const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); // 0=일 … 6=토
+  return wd === 5 ? "금" : wd === 0 ? "일" : "토";
+}
+
 export function makeEvent(date: string, weekday: Weekday, name: string): EventConfig {
   return {
     id: uid("evt_"),
