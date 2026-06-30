@@ -301,6 +301,44 @@ export class SupabaseStore implements Store {
     await this.load();
   }
 
+  // ── 현장 명단 편집 ──
+  async addSeller(eventId: string, row: SellerImportRow) {
+    await this.sb().from("sellers").insert({
+      event_id: eventId,
+      seq: row.seq,
+      business: row.business,
+      name: row.name,
+      product_text: row.productText,
+      category_key: categorize(row.productText),
+      two_tables: row.twoTables ?? false,
+      phone: row.phone ?? null,
+    });
+    await this.load();
+  }
+
+  async updateSeller(
+    sellerId: string,
+    patch: Partial<Pick<Seller, "business" | "name" | "productText" | "phone" | "seq" | "twoTables">>,
+  ) {
+    const u: Row = {};
+    if (patch.business !== undefined) u.business = patch.business;
+    if (patch.name !== undefined) u.name = patch.name;
+    if (patch.seq !== undefined) u.seq = patch.seq;
+    if (patch.phone !== undefined) u.phone = patch.phone ?? null;
+    if (patch.twoTables !== undefined) u.two_tables = patch.twoTables;
+    if (patch.productText !== undefined) {
+      u.product_text = patch.productText;
+      u.category_key = categorize(patch.productText);
+    }
+    if (Object.keys(u).length) await this.sb().from("sellers").update(u).eq("id", sellerId);
+    await this.load();
+  }
+
+  async removeSeller(sellerId: string) {
+    await this.sb().from("sellers").delete().eq("id", sellerId);
+    await this.load();
+  }
+
   // ── lottery ──
   async drawSeat(eventId: string, sellerId: string): Promise<DrawResult> {
     const event = this.data.events.find((e) => e.id === eventId);

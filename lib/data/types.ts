@@ -139,6 +139,15 @@ export interface Store {
   reassignSeat(eventId: string, sellerId: string, seatCode: string): void;
   clearAssignment(eventId: string, sellerId: string): void;
   setSellerTwoTables(sellerId: string, value: boolean): void;
+  /** 현장 명단 수정: 셀러 1명 추가 */
+  addSeller(eventId: string, row: SellerImportRow): void;
+  /** 셀러 정보 수정(상호/이름/취급상품/연락처/번호/2매대). 취급상품 변경 시 카테고리 자동 갱신 */
+  updateSeller(
+    sellerId: string,
+    patch: Partial<Pick<Seller, "business" | "name" | "productText" | "phone" | "seq" | "twoTables">>,
+  ): void;
+  /** 셀러 삭제 (배정 좌석도 함께 비워짐) */
+  removeSeller(sellerId: string): void;
   setSeatActive(eventId: string, seatCode: string, active: boolean): void;
   /** 여러 좌석을 한 번에 활성/비활성 (일괄 제외) */
   setSeatsActive(eventId: string, codes: string[], active: boolean): void;

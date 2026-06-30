@@ -163,6 +163,43 @@ export class DataStore implements Store {
     }));
   }
 
+  // ---- 현장 명단 편집 ----
+  addSeller(eventId: string, row: SellerImportRow) {
+    const seller: Seller = {
+      id: uid("sel_"),
+      eventId,
+      seq: row.seq,
+      business: row.business,
+      name: row.name,
+      productText: row.productText,
+      categoryKey: categorize(row.productText),
+      twoTables: row.twoTables ?? false,
+      phone: row.phone,
+      assignedSeat: null,
+      drawnAt: null,
+    };
+    this.mutate((d) => ({ ...d, sellers: [...d.sellers, seller] }));
+  }
+
+  updateSeller(
+    sellerId: string,
+    patch: Partial<Pick<Seller, "business" | "name" | "productText" | "phone" | "seq" | "twoTables">>,
+  ) {
+    this.mutate((d) => ({
+      ...d,
+      sellers: d.sellers.map((s) => {
+        if (s.id !== sellerId) return s;
+        const next = { ...s, ...patch };
+        if (patch.productText !== undefined) next.categoryKey = categorize(patch.productText);
+        return next;
+      }),
+    }));
+  }
+
+  removeSeller(sellerId: string) {
+    this.mutate((d) => ({ ...d, sellers: d.sellers.filter((s) => s.id !== sellerId) }));
+  }
+
   // ---- lottery ----
   async drawSeat(eventId: string, sellerId: string, rand?: () => number): Promise<DrawResult> {
     const event = this.data.events.find((e) => e.id === eventId);
