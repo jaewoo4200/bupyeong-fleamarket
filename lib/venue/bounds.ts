@@ -11,13 +11,20 @@ function bbox(items: { x: number; y: number; w: number; h: number }[]): Bounds {
 }
 
 const all = [...SEATS, ...LANDMARKS];
+// 주변 상가(store) 라벨을 숨겼을 때의 "타이트" 영역 — 좌석이 더 크게 보이도록 빈 여백 제거
+const tight = [...SEATS, ...LANDMARKS.filter((l) => l.kind !== "store")];
 
 export const BAND1_BOUNDS = bbox(all.filter((i) => i.band === 1));
 export const BAND2_BOUNDS = bbox(all.filter((i) => i.band === 2));
+export const BAND1_BOUNDS_TIGHT = bbox(tight.filter((i) => i.band === 1));
+export const BAND2_BOUNDS_TIGHT = bbox(tight.filter((i) => i.band === 2));
 export const FULL_BOUNDS: Bounds = { x: 0, y: 0, w: VENUE_VIEWBOX.width, h: VENUE_VIEWBOX.height };
+export const FULL_BOUNDS_TIGHT = bbox(tight);
 
-export function boundsFor(view: "all" | "band1" | "band2"): Bounds {
-  return view === "band1" ? BAND1_BOUNDS : view === "band2" ? BAND2_BOUNDS : FULL_BOUNDS;
+export function boundsFor(view: "all" | "band1" | "band2", hideStores = false): Bounds {
+  if (view === "band1") return hideStores ? BAND1_BOUNDS_TIGHT : BAND1_BOUNDS;
+  if (view === "band2") return hideStores ? BAND2_BOUNDS_TIGHT : BAND2_BOUNDS;
+  return hideStores ? FULL_BOUNDS_TIGHT : FULL_BOUNDS;
 }
 
 /** Padded viewBox string for a bounds. */
@@ -25,7 +32,7 @@ export function viewBoxStr(b: Bounds, pad = 6): string {
   return `${b.x - pad} ${b.y - pad} ${b.w + pad * 2} ${b.h + pad * 2}`;
 }
 
-export function aspectFor(view: "all" | "band1" | "band2", pad = 6): number {
-  const b = boundsFor(view);
+export function aspectFor(view: "all" | "band1" | "band2", hideStores = false, pad = 6): number {
+  const b = boundsFor(view, hideStores);
   return (b.w + pad * 2) / (b.h + pad * 2);
 }

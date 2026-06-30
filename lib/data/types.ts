@@ -77,11 +77,32 @@ export type Note = {
   createdAt: string;
 };
 
+/** 버스킹(공연) 일정 — 행사일이 아닌 날짜 기준 전역 데이터(붙여넣기 가져오기 + 편집) */
+export type BuskingEntry = {
+  id: string;
+  date: string; // YYYY-MM-DD
+  time?: string;
+  title: string;
+  performer?: string;
+  contact?: string;
+};
+
+/** 근무자 — 날짜별 1명 1행(붙여넣기 가져오기 + 편집) */
+export type StaffEntry = {
+  id: string;
+  date: string; // YYYY-MM-DD
+  name: string;
+  role?: string;
+};
+
 export type AppData = {
   events: EventConfig[];
   sellers: Seller[];
   draws: DrawLog[];
   notes: Note[];
+  /** 버스킹/근무자 일정(전역, 날짜 기준) */
+  busking: BuskingEntry[];
+  staff: StaffEntry[];
   currentEventId?: string;
 };
 
@@ -129,5 +150,9 @@ export interface Store {
   addNote(eventId: string, text: string, tag?: Note["tag"]): void;
   toggleNote(id: string): void;
   removeNote(id: string): void;
+  /** 버스킹 일정 전체 교체(가져오기/편집 결과를 그대로 반영) */
+  setBuskingEntries(entries: BuskingEntry[]): void;
+  /** 근무자 일정 전체 교체 */
+  setStaffEntries(entries: StaffEntry[]): void;
   resetAll(): void;
 }

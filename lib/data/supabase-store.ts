@@ -2,6 +2,7 @@
 
 import type {
   AppData,
+  BuskingEntry,
   CustomSeat,
   DrawResult,
   EventConfig,
@@ -9,6 +10,7 @@ import type {
   Note,
   Seller,
   SellerImportRow,
+  StaffEntry,
   Store,
   Weekday,
 } from "./types";
@@ -17,6 +19,8 @@ import { activeSeatCodes, filterByTwoTables } from "@/lib/lottery/rules";
 import { splitParts } from "@/lib/venue/seats";
 import { EMPTY_DATA } from "./seed";
 import { SEED_SELLERS } from "./seed-sellers";
+import { SEED_BUSKING } from "./busking";
+import { SEED_STAFF } from "./staff";
 import { getSupabaseClient } from "@/lib/supabase/client";
 
 const CURRENT_KEY = "bupyeong-flea/current-event";
@@ -77,6 +81,32 @@ function mapNote(r: Row): Note {
     createdAt: r.created_at as string,
   };
 }
+function mapBusking(r: Row): BuskingEntry {
+  return {
+    id: r.id as string,
+    date: r.date as string,
+    time: (r.time as string) ?? undefined,
+    title: (r.title as string) ?? "",
+    performer: (r.performer as string) ?? undefined,
+    contact: (r.contact as string) ?? undefined,
+  };
+}
+function mapStaff(r: Row): StaffEntry {
+  return {
+    id: r.id as string,
+    date: r.date as string,
+    name: (r.name as string) ?? "",
+    role: (r.role as string) ?? undefined,
+  };
+}
+const buskingRow = (e: BuskingEntry) => ({
+  date: e.date,
+  time: e.time ?? null,
+  title: e.title,
+  performer: e.performer ?? null,
+  contact: e.contact ?? null,
+});
+const staffRow = (e: StaffEntry) => ({ date: e.date, name: e.name, role: e.role ?? null });
 
 /** Supabase 어댑터: Postgres + Realtime. 인메모리 미러를 유지하고 변경 시 reload. */
 export class SupabaseStore implements Store {
@@ -112,11 +142,13 @@ export class SupabaseStore implements Store {
 
   private async load() {
     const sb = this.sb();
-    const [ev, sel, dr, nt] = await Promise.all([
+    const [ev, sel, dr, nt, bk, st] = await Promise.all([
       sb.from("events").select("*"),
       sb.from("sellers").select("*"),
       sb.from("draws").select("*"),
       sb.from("notes").select("*"),
+      sb.from("busking").select("*"),
+      sb.from("staff").select("*"),
     ]);
     if (ev.error) {
       // 마이그레이션 미적용 등 — 크래시 대신 빈 상태 유지
@@ -127,12 +159,21 @@ export class SupabaseStore implements Store {
     const sellers = (sel.data ?? []).map(mapSeller);
     const draws = (dr.data ?? []).map(mapDraw);
     const notes = (nt.data ?? []).map(mapNote);
+    // 버스킹/근무자 테이블(0004)이 아직 없으면 크래시 대신 기존 값 유지
+    if (bk.error) console.warn("[supabase] busking 로드 실패 (0004 미적용?):", bk.error.message);
+    if (st.error) console.warn("[supabase] staff 로드 실패 (0004 미적용?):", st.error.message);
+    const busking = bk.error
+      ? this.data.busking
+      : (bk.data ?? []).map(mapBusking).sort((a, b) => a.date.localeCompare(b.date) || (a.time ?? "").localeCompare(b.time ?? ""));
+    const staff = st.error
+      ? this.data.staff
+      : (st.data ?? []).map(mapStaff).sort((a, b) => a.date.localeCompare(b.date));
     const currentEventId =
       this.currentEventId && events.some((e) => e.id === this.currentEventId)
         ? this.currentEventId
         : events[0]?.id;
     this.currentEventId = currentEventId;
-    this.data = { events, sellers, draws, notes, currentEventId };
+    this.data = { events, sellers, draws, notes, busking, staff, currentEventId };
     this.emit();
   }
 
@@ -172,7 +213,7 @@ export class SupabaseStore implements Store {
   private subscribeRealtime() {
     const sb = this.sb();
     const ch = sb.channel("bupyeong-rt");
-    for (const table of ["events", "sellers", "draws", "notes"]) {
+    for (const table of ["events", "sellers", "draws", "notes", "busking", "staff"]) {
       ch.on("postgres_changes", { event: "*", schema: "public", table }, () => this.scheduleReload());
     }
     ch.subscribe();
@@ -416,6 +457,30 @@ export class SupabaseStore implements Store {
     await this.load();
   }
 
+  // ── 버스킹 / 근무자 (전체 교체) ──
+  // delete→insert는 원자적이지 않으므로 각 단계 오류를 잡아 throw → 패널이 dirty 초안을 보존하고 빈 목록으로 덮어쓰지 않음.
+  async setBuskingEntries(entries: BuskingEntry[]) {
+    const sb = this.sb();
+    const del = await sb.from("busking").delete().not("id", "is", null);
+    if (del.error) throw new Error(del.error.message);
+    if (entries.length) {
+      const ins = await sb.from("busking").insert(entries.map(buskingRow));
+      if (ins.error) throw new Error(ins.error.message);
+    }
+    await this.load();
+  }
+
+  async setStaffEntries(entries: StaffEntry[]) {
+    const sb = this.sb();
+    const del = await sb.from("staff").delete().not("id", "is", null);
+    if (del.error) throw new Error(del.error.message);
+    if (entries.length) {
+      const ins = await sb.from("staff").insert(entries.map(staffRow));
+      if (ins.error) throw new Error(ins.error.message);
+    }
+    await this.load();
+  }
+
   async resetDraws(eventId: string) {
     const sb = this.sb();
     await sb.from("sellers").update({ assigned_seat: null, drawn_at: null }).eq("event_id", eventId);
@@ -425,8 +490,14 @@ export class SupabaseStore implements Store {
   }
 
   async resetAll() {
+    const sb = this.sb();
     // events 삭제 → FK cascade로 sellers/draws/notes 동반 삭제 → 재시드
-    await this.sb().from("events").delete().not("id", "is", null);
+    await sb.from("events").delete().not("id", "is", null);
+    // 버스킹/근무자는 전역(FK 아님) → 직접 비우고 데모 시드 재삽입 (테이블 없으면 무시)
+    await sb.from("busking").delete().not("id", "is", null);
+    await sb.from("staff").delete().not("id", "is", null);
+    await sb.from("busking").insert(SEED_BUSKING.map(buskingRow));
+    await sb.from("staff").insert(SEED_STAFF.map(staffRow));
     await this.autoSeed();
     await this.load();
   }

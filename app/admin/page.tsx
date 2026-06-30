@@ -28,6 +28,8 @@ import { AdminGate, adminLogout } from "@/components/admin/AdminGate";
 import { UploadCard } from "@/components/admin/UploadCard";
 import { RosterTable } from "@/components/admin/RosterTable";
 import { SeatConfigMap } from "@/components/admin/SeatConfigMap";
+import { BuskingPanel } from "@/components/admin/BuskingPanel";
+import { StaffPanel } from "@/components/admin/StaffPanel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input, Label, Select } from "@/components/ui/input";
@@ -36,12 +38,14 @@ import { useAppData, useStore } from "@/lib/data/hooks";
 import { buildSeatStates, lotteryProgress } from "@/lib/data/selectors";
 import type { EventConfig, EventType, Seller, Weekday } from "@/lib/data/types";
 
-type Tab = "overview" | "roster" | "seats" | "notes" | "event";
+type Tab = "overview" | "roster" | "seats" | "busking" | "staff" | "notes" | "event";
 
 const TABS: { key: Tab; label: string; icon: typeof Users }[] = [
   { key: "overview", label: "현황", icon: LayoutDashboard },
   { key: "roster", label: "명단", icon: Users },
   { key: "seats", label: "자리 설정", icon: MapPinned },
+  { key: "busking", label: "버스킹", icon: Music },
+  { key: "staff", label: "근무자", icon: Users2 },
   { key: "notes", label: "메모", icon: StickyNote },
   { key: "event", label: "행사", icon: CalendarCog },
 ];
@@ -124,6 +128,8 @@ function AdminInner() {
             </div>
           )}
           {tab === "seats" && <SeatConfigMap event={event} sellers={sellers} />}
+          {tab === "busking" && <BuskingPanel entries={data.busking} defaultDate={event.date} />}
+          {tab === "staff" && <StaffPanel entries={data.staff} defaultDate={event.date} />}
           {tab === "notes" && <NotesPanel eventId={event.id} />}
           {tab === "event" && <EventSettings event={event} />}
         </div>
@@ -164,8 +170,8 @@ function Overview({ event, sellers }: { event: EventConfig; sellers: Seller[] })
     const inactive = new Set(event.inactiveSeatCodes);
     return effSeats.filter((s) => !inactive.has(s.code) && seatNeedsChair(s.palette)).length;
   }, [effSeats, event.inactiveSeatCodes]);
-  const busking = buskingForDate(event.date);
-  const staff = staffForDate(event.date);
+  const busking = buskingForDate(data.busking, event.date);
+  const staff = staffForDate(data.staff, event.date);
   const stageFrontExcluded = STAGE_FRONT_SEATS.every((c) => event.inactiveSeatCodes.includes(c));
   const draws = data.draws
     .filter((d) => d.eventId === event.id)
@@ -211,11 +217,11 @@ function Overview({ event, sellers }: { event: EventConfig; sellers: Seller[] })
         </div>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
-        <div>
-          <VenueMapViewer states={states} seats={effSeats} showOccupantNames />
-        </div>
-      <div className="flex flex-col gap-4">
+      {/* 자리표 — 풀폭으로 크게 */}
+      <VenueMapViewer states={states} seats={effSeats} showOccupantNames />
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col gap-4">
         <Link href="/kiosk">
           <Button size="lg" className="w-full">
             <Hand /> 추첨 화면 열기
@@ -260,6 +266,7 @@ function Overview({ event, sellers }: { event: EventConfig; sellers: Seller[] })
             </Button>
           </div>
         </div>
+        </div>
 
         <div className="rounded-2xl border border-cream-200 bg-white p-4">
           <h4 className="text-sm font-bold text-ink-900">최근 활동</h4>
@@ -282,7 +289,9 @@ function Overview({ event, sellers }: { event: EventConfig; sellers: Seller[] })
             <Users2 className="size-4 text-coral-600" /> 오늘 근무
           </h4>
           {staff.length === 0 ? (
-            <p className="mt-2 text-sm text-ink-400">등록된 근무자가 없습니다 ({event.date}).</p>
+            <p className="mt-2 text-sm text-ink-400">
+              등록된 근무자가 없습니다 ({event.date}). <span className="text-ink-300">‘근무자’ 탭에서 추가하세요.</span>
+            </p>
           ) : (
             <div className="mt-2 flex flex-wrap gap-1.5">
               {staff.map((m, i) => (
@@ -297,7 +306,6 @@ function Overview({ event, sellers }: { event: EventConfig; sellers: Seller[] })
             </div>
           )}
         </div>
-      </div>
       </div>
     </div>
   );

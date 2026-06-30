@@ -20,11 +20,24 @@ export type SeatMapProps = {
   showOccupantNames?: boolean;
   /** 렌더할 좌석 목록 (기본 정적 SEATS). 결합석 분리·커스텀 좌석 반영 시 effectiveSeats 전달. */
   seats?: SeatGeo[];
+  /** 주변 상가(벤치·자리번호 없는 store 라벨) 숨기기 — 좌석이 더 크게 보임 */
+  hideStores?: boolean;
   /** 드래그 영역 선택(일괄 제외). 드래그한 사각형 안 좌석 코드를 전달. */
   lasso?: boolean;
   onLasso?: (codes: string[]) => void;
   className?: string;
 };
+
+/** 한글/전각은 ~1.0em, 라틴은 ~0.55em, 구분점·공백은 ~0.3em 으로 텍스트 폭(em) 추정 */
+function estWidthEm(s: string): number {
+  let w = 0;
+  for (const ch of s) {
+    if (ch === "·" || ch === " " || ch === "/" || ch === ".") w += 0.3;
+    else if (/[ᄀ-ᇿ가-힣　-〿＀-￯]/.test(ch)) w += 1.0;
+    else w += 0.56;
+  }
+  return Math.max(0.5, w);
+}
 
 const LANDMARK_STYLE: Record<
   LandmarkKind,
@@ -49,11 +62,12 @@ export function SeatMap({
   view = "all",
   showOccupantNames = false,
   seats = SEATS,
+  hideStores = false,
   lasso = false,
   onLasso,
   className,
 }: SeatMapProps) {
-  const viewBox = viewBoxStr(boundsFor(view));
+  const viewBox = viewBoxStr(boundsFor(view, hideStores));
   const [box, setBox] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
   const boxRef = useRef<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
   const dragging = useRef(false);
@@ -64,7 +78,9 @@ export function SeatMap({
 
   const inBand = (band: 1 | 2) => view === "all" || band === (view === "band1" ? 1 : 2);
   const visibleSeats = seats.filter((s) => inBand(s.band));
-  const visibleLandmarks = LANDMARKS.filter((l) => inBand(l.band));
+  const visibleLandmarks = LANDMARKS.filter(
+    (l) => inBand(l.band) && !(hideStores && l.kind === "store"),
+  );
 
   function toViewBox(e: React.PointerEvent<SVGSVGElement> | React.MouseEvent<SVGSVGElement>) {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -144,14 +160,20 @@ export function SeatMap({
       {visibleLandmarks.map((l, i) => {
         const st = LANDMARK_STYLE[l.kind];
         const vertical = l.h > l.w * 1.5;
-        const labelLen = Math.max(1, l.label.replace(/·/g, "").length);
-        const fontSize = vertical
-          ? Math.max(4, Math.min(l.w * 0.78, 9))
-          : Math.max(6, Math.min(l.h * 0.62, (l.w * 0.96) / (labelLen * 0.6), 16));
+        const labelEm = estWidthEm(l.label);
         const cx = l.x + l.w / 2;
         const cy = l.y + l.h / 2;
+        // 회전 라벨은 길이축=높이, 폭축=너비 / 가로 라벨은 그 반대
+        const availLen = (vertical ? l.h : l.w) * 0.92;
+        const availThick = (vertical ? l.w : l.h) * 0.78;
+        // 폭에 맞춰 글자 크기 산정(한글 폭 반영) → 높이/절대 상한으로 클램프
+        const fontSize = Math.max(5, Math.min(availThick, availLen / labelEm, 16));
+        // 그래도 넘치면 textLength로 압축해 잘림 방지
+        const naturalLen = labelEm * fontSize;
+        const textLen = naturalLen > availLen ? availLen : undefined;
         return (
           <g key={`lm-${i}`}>
+            <title>{l.label}</title>
             <rect
               x={l.x}
               y={l.y}
@@ -170,6 +192,8 @@ export function SeatMap({
               textAnchor="middle"
               dominantBaseline="central"
               transform={vertical ? `rotate(-90 ${cx} ${cy})` : undefined}
+              textLength={textLen}
+              lengthAdjust={textLen ? "spacingAndGlyphs" : undefined}
               style={{ pointerEvents: "none" }}
             >
               {l.label}
@@ -199,10 +223,24 @@ export function SeatMap({
         const cx = s.x + s.w / 2;
         const cy = s.y + s.h / 2;
         const showName = showOccupantNames && assigned && !!occupant;
+        // 좌석번호 폰트: 코드 글자수(결합석 "24,24-1" 등)에 맞춰 폭으로도 제한 → 큰 결합석 코드가 박스를 넘지 않음
         const numFont = showName
-          ? Math.min(s.h * 0.34, 6)
-          : Math.min(s.h * 0.62, s.w * 0.8, 14);
-        const nameFont = Math.min(s.h * 0.46, (s.w * 0.95) / 3.2, 8);
+          ? Math.min(s.h * 0.4, s.w * 0.6, 7)
+          : Math.min(s.h * 0.66, (s.w * 0.88) / estWidthEm(s.code), 15);
+        // 그래도 넘치면 textLength로 압축(랜드마크 라벨과 동일한 잘림 방지)
+        const codeAvail = s.w * 0.9;
+        const codeTextLen = estWidthEm(s.code) * numFont > codeAvail ? codeAvail : undefined;
+        const nameFont = Math.min(s.h * 0.5, 9);
+
+        // 상호명을 좌석 폭에 맞춰 자르고(필요시 …) textLength로 잘림 방지
+        const nameAvail = s.w * 0.92;
+        let nameText = occupant?.business ?? "";
+        if (occupant) {
+          let n = nameText.length;
+          while (n > 1 && estWidthEm(nameText.slice(0, n) + (n < nameText.length ? "…" : "")) * nameFont > nameAvail) n--;
+          if (n < nameText.length) nameText = nameText.slice(0, n) + "…";
+        }
+        const nameTextLen = occupant && estWidthEm(nameText) * nameFont > nameAvail ? nameAvail : undefined;
 
         return (
           <g
@@ -218,6 +256,7 @@ export function SeatMap({
             className={onSeatClick ? "cursor-pointer" : undefined}
             opacity={inactive ? 0.55 : 1}
           >
+            <title>{occupant ? `${s.code} · ${occupant.business} (${occupant.name})` : `${s.code}번`}</title>
             {isHighlight && (
               <rect
                 x={s.x - 2}
@@ -257,6 +296,8 @@ export function SeatMap({
               fill={textColor}
               textAnchor="middle"
               dominantBaseline="central"
+              textLength={codeTextLen}
+              lengthAdjust={codeTextLen ? "spacingAndGlyphs" : undefined}
               style={{ pointerEvents: "none" }}
               className="tnum"
             >
@@ -271,11 +312,11 @@ export function SeatMap({
                 fill="#ffffff"
                 textAnchor="middle"
                 dominantBaseline="central"
+                textLength={nameTextLen}
+                lengthAdjust={nameTextLen ? "spacingAndGlyphs" : undefined}
                 style={{ pointerEvents: "none" }}
               >
-                {occupant.business.length > 4
-                  ? occupant.business.slice(0, 4) + "…"
-                  : occupant.business}
+                {nameText}
               </text>
             )}
           </g>

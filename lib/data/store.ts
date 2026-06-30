@@ -385,6 +385,15 @@ export class DataStore implements Store {
     this.mutate((d) => ({ ...d, notes: d.notes.filter((n) => n.id !== id) }));
   }
 
+  // ---- 버스킹 / 근무자 일정 ----
+  setBuskingEntries(entries: import("./types").BuskingEntry[]) {
+    this.mutate((d) => ({ ...d, busking: entries }));
+  }
+
+  setStaffEntries(entries: import("./types").StaffEntry[]) {
+    this.mutate((d) => ({ ...d, staff: entries }));
+  }
+
   resetDraws(eventId: string) {
     const now = new Date().toISOString();
     this.mutate((d) => ({

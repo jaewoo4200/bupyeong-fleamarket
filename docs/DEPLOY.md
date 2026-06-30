@@ -33,8 +33,13 @@ git push -u origin main
 Supabase 대시보드 → **SQL Editor** → New query 에 아래 파일 내용을 순서대로 붙여넣고 실행:
 1. `supabase/migrations/0001_init.sql` (테이블 + draw_seat RPC + RLS + Realtime)
 2. `supabase/seed.sql` (좌석 카탈로그 80석)
+3. `supabase/migrations/0002_two_tables.sql` (sellers.two_tables 컬럼)
+4. `supabase/migrations/0004_schedules.sql` (버스킹/근무자 테이블 + RLS + Realtime + 데모 시드)
+5. `supabase/migrations/0003_secure_rls.sql` (**운영 보안**: 공개 읽기/인증 쓰기) — ⚠️ **반드시 관리자 계정 생성 + 새 코드 배포 후 마지막에** 실행. 먼저 돌리면 로그인 전까지 쓰기가 막힙니다(읽기는 계속 공개). 0004는 0003과 같은 정책을 자체 포함하므로 0003 앞/뒤 어디서 실행해도 됩니다.
 
 (또는 Supabase CLI: `supabase link` 후 `supabase db push`)
+
+> 0004 미적용 시: 앱은 크래시 없이 동작하되 버스킹/근무자만 빈 상태로 보입니다(관리자 탭에서 재가져오기 가능). 적용하면 6월 버스킹·7월 근무 데모가 자동 시드됩니다.
 
 ### 3-3. 키 설정
 - 로컬: `.env.example` → `.env.local` 복사 후 값 채우기.

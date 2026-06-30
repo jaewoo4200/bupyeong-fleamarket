@@ -2,6 +2,15 @@
 
 > 최신 항목을 위에 추가. 타 에이전트/세션의 컨텍스트 유지용.
 
+## 2026-06-30 (11) — 일정 텍스트 가져오기(버스킹·근무자 탭) + 지도 확대·접기
+- **버스킹/근무자 = 편집 가능한 전역 데이터로 전환**: `AppData.busking/staff`(날짜 기준), `Store.setBuskingEntries/setStaffEntries`(양 어댑터). 기존 정적 파일(`lib/data/busking.ts`·`staff.ts`)은 시드 배열(`SEED_BUSKING`/`SEED_STAFF`)+순수 셀렉터(`*ForDate(entries,date)`)로 리팩터. 마이그레이션 `0004_schedules.sql`(busking/staff 테이블 + 읽기public/쓰기auth RLS + realtime + 데모 시드). load는 테이블 없으면 복원력 유지.
+- **사진→텍스트 자동입력(우리쪽은 텍스트만 처리, OCR/AI 호출 없음)**: `lib/data/schedule-parse.ts` — 복붙용 프롬프트(`BUSKING_PROMPT`/`STAFF_PROMPT`)를 운영자가 자기 AI에 사진과 함께 넣어 구조화 텍스트를 받고, 그걸 붙여넣으면 `parseBuskingText`/`parseStaffText`가 파싱(`날짜|…` 형식, `normalizeDate` 관대, issue 리포트, `upsertByDate` 날짜별 병합).
+- **관리자 버스킹·근무자 탭 분리**(`components/admin/{SchedulePromptBox,BuskingPanel,StaffPanel}.tsx`): 프롬프트 복사 → 붙여넣기 미리보기(인식 건수·오류 줄) → 가져오기 → 인라인 편집(추가/삭제, 날짜별 그룹) → 일괄 **저장/되돌리기**(키 입력마다 저장 안 함 = Supabase 부하↓).
+- **지도**: 현황 자리표 **풀폭 확대**, 좌석 폰트 상향. **글자 잘림 제거** — 한글 폭 추정으로 박스에 맞춰 폰트 산정 + `textLength`/`lengthAdjust` 압축 + `<title>` 호버. **주변 상가(store, 벤치·번호 없음) 접기 토글**(`SeatMap.hideStores`, 기본 숨김; `bounds` 타이트; `VenueMapViewer` 토글).
+- 검증: typecheck·build·test(**16/16**, schedule-parse 테스트). 로컬 프리뷰 E2E — 버스킹/근무자 붙여넣기→미리보기→가져오기(날짜 병합, 중복 없음)→저장→localStorage 영속, 6/7 행사 현황에 버스킹 알림+오늘근무(가져온 6/7 근무자) 반영, 상가 토글·라벨 비잘림 확인(모바일 포함).
+- **적대적 코드리뷰(멀티 에이전트) 후 확정 결함 6건 수정**: ① 근무자 `|` 구분도 분리(쉼표 외) ② `normalizeDate` 요일 접미사 `(토)`/` 토` 일관 제거 + 실제 달력 검증(2/30·6/31 거부) ③ Supabase `setBusking/StaffEntries` delete→insert 오류 캡처·throw(빈 목록 덮어쓰기 방지) ④ 패널 `save` await화(저장 깜빡임/초안 유실 방지, 실패 시 alert+dirty 유지) ⑤ 결합석 코드(`24,24-1` 등) 폰트 폭 보정+`textLength`로 박스 내 정렬(브라우저 bbox로 6종 모두 fit 확인) ⑥ `0004` 멱등화(정책 drop-if-exists, realtime add 조건부)→재실행 안전.
+- ⚠️ 사용자: Supabase에 **`0004_schedules.sql` 실행** 필요(미적용 시 버스킹/근무자만 빈 상태, 크래시 없음). push는 기존 보안 롤아웃 순서와 함께(아래 (10) 참고).
+
 ## 2026-06-30 (10) — 운영 보안 하드닝 + 기능 6-B(GPS)
 - **Supabase Auth 로그인**: Supabase 모드일 때 `AdminGate`가 이메일/비번 로그인(`signInWithPassword`), client `persistSession`, 로그아웃 signOut. 로컬 모드는 기존 비번 게이트 유지. autoSeed는 세션 있을 때만.
 - **제한 RLS `0003_secure_rls.sql`**: 공개 읽기 / 인증 쓰기, `claim_seat`는 authenticated만. ⚠️ 적용 순서: 관리자 계정 생성→배포→0003.
