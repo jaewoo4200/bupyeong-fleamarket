@@ -19,20 +19,20 @@ const SIZE = {
   preview: {
     padding: "p-2",
     caption: "text-xs",
-    embeddedMinWidth: 560,
-    modalMinWidth: 1120,
+    embeddedMinWidth: 720,
+    modalMinWidth: 1280,
   },
   standard: {
     padding: "p-2.5",
     caption: "text-sm",
-    embeddedMinWidth: 760,
-    modalMinWidth: 1320,
+    embeddedMinWidth: 980,
+    modalMinWidth: 1600,
   },
   large: {
     padding: "p-3",
     caption: "text-sm sm:text-base",
-    embeddedMinWidth: 1060,
-    modalMinWidth: 1480,
+    embeddedMinWidth: 1320,
+    modalMinWidth: 1900,
   },
 } satisfies Record<
   SeatMapPanelSize,
