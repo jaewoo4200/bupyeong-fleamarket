@@ -5,7 +5,7 @@ import { Search, MapPin, Clock, CheckCircle2 } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { SeatMap } from "@/components/venue/SeatMap";
+import { SeatMapPanel } from "@/components/venue/SeatMapPanel";
 import { GpsGuide } from "@/components/venue/GpsGuide";
 import { useAppData } from "@/lib/data/hooks";
 import { buildSeatStates, searchSellers } from "@/lib/data/selectors";
@@ -137,9 +137,14 @@ function SellerCard({ seller, data }: { seller: Seller; data: ReturnType<typeof 
             <GpsGuide />
           </div>
           <div className="p-3">
-            <div style={{ aspectRatio: band === "band1" ? 3.29 : 1.63 }} className="w-full">
-              <SeatMap view={band} states={states} seats={effSeats} highlightCode={seller.assignedSeat} />
-            </div>
+            <SeatMapPanel
+              view={band}
+              caption={dir?.bandLabel ?? "내 자리 배치도"}
+              states={states}
+              seats={effSeats}
+              highlightCode={seller.assignedSeat}
+              size="standard"
+            />
             <p className="px-1 pt-2 text-xs text-ink-400">
               빨간 테두리가 내 자리입니다. 현장에서 안내 표지판과 함께 확인하세요.
             </p>

@@ -70,7 +70,7 @@ function AdminInner() {
   const openNotes = event ? data.notes.filter((n) => n.eventId === event.id && !n.done).length : 0;
 
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
+    <main className="mx-auto w-full max-w-[1480px] flex-1 px-4 py-6 sm:px-6">
       {/* 상단 바 */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -218,7 +218,7 @@ function Overview({ event, sellers }: { event: EventConfig; sellers: Seller[] })
       )}
 
       {/* 자리표 — 풀폭으로 크게 */}
-      <VenueMapViewer states={states} seats={effSeats} showOccupantNames />
+      <VenueMapViewer states={states} seats={effSeats} showOccupantNames size="large" />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="flex flex-col gap-4">

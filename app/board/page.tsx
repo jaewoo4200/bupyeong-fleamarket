@@ -24,7 +24,7 @@ export default function BoardPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+      <main className="mx-auto w-full max-w-[1480px] flex-1 px-4 py-8 sm:px-6">
         {!event ? (
           <EmptyState />
         ) : (
@@ -78,7 +78,7 @@ export default function BoardPage() {
             )}
 
             <div className="mt-6">
-              <VenueMapViewer states={states} seats={effSeats} showOccupantNames />
+              <VenueMapViewer states={states} seats={effSeats} showOccupantNames size="large" />
             </div>
 
             <div className="mt-6 grid gap-5 rounded-2xl border border-cream-200 bg-white p-5 sm:grid-cols-[auto_1fr]">

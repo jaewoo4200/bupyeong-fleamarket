@@ -87,7 +87,7 @@ export default function Home() {
             <div className="flex items-center">
               <div className="w-full rounded-3xl border border-cream-200 bg-white/70 p-4 shadow-card backdrop-blur">
                 <p className="mb-2 px-1 text-sm font-bold text-ink-700">자리배치도 미리보기</p>
-                <VenueMapViewer defaultView="band1" showTabs={false} />
+                <VenueMapViewer defaultView="band1" showTabs={false} size="preview" />
                 <p className="mt-2 px-1 text-xs text-ink-400">윗구간 · 좌석 1~29 / 57~80</p>
               </div>
             </div>
@@ -102,7 +102,7 @@ export default function Home() {
               부평 문화의거리를 따라 좌석 1~80번이 배치됩니다. 구간을 눌러 확대해서 보세요.
             </p>
           </div>
-          <VenueMapViewer />
+          <VenueMapViewer size="standard" />
           <div className="mt-6 grid gap-5 rounded-2xl border border-cream-200 bg-white p-5 sm:grid-cols-[auto_1fr]">
             <div className="sm:border-r sm:border-cream-200 sm:pr-5">
               <p className="mb-2 text-sm font-bold text-ink-700">자리 상태</p>

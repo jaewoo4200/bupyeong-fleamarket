@@ -163,7 +163,7 @@ export function SeatMap({
         const availLen = (vertical ? l.h : l.w) * 0.92;
         const availThick = (vertical ? l.w : l.h) * 0.78;
         // 폭에 맞춰 글자 크기 산정(한글 폭 반영) → 높이/절대 상한으로 클램프
-        const fontSize = Math.max(5, Math.min(availThick, availLen / labelEm, 16));
+        const fontSize = Math.max(7, Math.min(availThick * 0.95, (availLen / labelEm) * 1.08, 20));
         // 그래도 넘치면 textLength로 압축해 잘림 방지
         const naturalLen = labelEm * fontSize;
         const textLen = naturalLen > availLen ? availLen : undefined;
@@ -178,7 +178,7 @@ export function SeatMap({
               rx={1.5}
               fill={st.fill}
               stroke={st.stroke ?? "#efe7d7"}
-              strokeWidth={0.4}
+              strokeWidth={0.65}
             />
             <text
               x={cx}
@@ -221,12 +221,12 @@ export function SeatMap({
         const showName = showOccupantNames && assigned && !!occupant;
         // 좌석번호 폰트: 코드 글자수(결합석 "24,24-1" 등)에 맞춰 폭으로도 제한 → 큰 결합석 코드가 박스를 넘지 않음
         const numFont = showName
-          ? Math.min(s.h * 0.4, s.w * 0.6, 7)
-          : Math.min(s.h * 0.66, (s.w * 0.88) / estWidthEm(s.code), 15);
+          ? Math.min(s.h * 0.46, s.w * 0.68, 9)
+          : Math.min(s.h * 0.76, (s.w * 0.94) / estWidthEm(s.code), 18);
         // 그래도 넘치면 textLength로 압축(랜드마크 라벨과 동일한 잘림 방지)
         const codeAvail = s.w * 0.9;
         const codeTextLen = estWidthEm(s.code) * numFont > codeAvail ? codeAvail : undefined;
-        const nameFont = Math.min(s.h * 0.5, 9);
+        const nameFont = Math.min(s.h * 0.54, 10.5);
 
         // 상호명을 좌석 폭에 맞춰 자르고(필요시 …) textLength로 잘림 방지
         const nameAvail = s.w * 0.92;
@@ -262,7 +262,7 @@ export function SeatMap({
                 rx={2}
                 fill="none"
                 stroke="#ec5e2e"
-                strokeWidth={0.9}
+                strokeWidth={1.35}
                 className="animate-pulse"
               />
             )}
@@ -271,18 +271,18 @@ export function SeatMap({
               y={s.y}
               width={s.w}
               height={s.h}
-              rx={1.4}
+              rx={1.8}
               fill={fill}
               stroke={stroke}
-              strokeWidth={isHighlight ? 1 : 0.5}
+              strokeWidth={isHighlight ? 1.35 : 0.75}
             />
             {/* 나무매대 표시: 상단 브라운 바 */}
             {wood && !inactive && (
-              <rect x={s.x} y={s.y} width={s.w} height={1.4} rx={0.7} fill="#A9744F" />
+              <rect x={s.x} y={s.y} width={s.w} height={2} rx={1} fill="#A9744F" />
             )}
             {/* 벤치/의자 구분 표식: 좌하단 점 (배정 좌석에서도 보이도록) */}
             {!inactive && s.palette !== "none" && (
-              <circle cx={s.x + 1.9} cy={s.y + s.h - 1.9} r={1.35} fill={BENCH_SOLID[s.palette]} stroke="#ffffff" strokeWidth={0.6} />
+              <circle cx={s.x + 2.4} cy={s.y + s.h - 2.4} r={1.75} fill={BENCH_SOLID[s.palette]} stroke="#ffffff" strokeWidth={0.75} />
             )}
             <text
               x={cx}

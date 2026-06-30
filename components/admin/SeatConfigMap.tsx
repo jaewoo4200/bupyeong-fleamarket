@@ -110,6 +110,7 @@ export function SeatConfigMap({ event, sellers }: { event: EventConfig; sellers:
         <VenueMapViewer
           states={states}
           seats={effSeats}
+          size="large"
           highlightCode={selected}
           onSeatClick={mode === "edit" ? (code) => setSelected(code) : undefined}
           onMapClick={mode === "add" ? handleAdd : undefined}

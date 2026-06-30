@@ -2,6 +2,23 @@
 
 > 최신 항목을 위에 추가. 타 에이전트/세션의 컨텍스트 유지용.
 
+## 2026-06-30 (Codex) — 자리배치도 확대/가독성 개선 + 공용 확대 모달
+- **범위**: 자리배치도 관련 UI만 수정. 추첨 규칙, 데이터 타입/스키마, 향제한/운영 로직은 변경하지 않음.
+- **배포/리포 참고**: 현재 라이브 배포는 https://bupyeong-fleamarket.vercel.app/ 이고, GitHub 리포는 `jaewoo4200/bupyeong-fleamarket`(https://github.com/jaewoo4200/bupyeong-fleamarket).
+- **공용 패널**: `components/venue/SeatMapPanel.tsx` 신설. `preview | standard | large` 크기 프리셋, caption, 카드 프레임, 가로 스크롤, `Maximize2` 크게 보기 버튼, 전체화면 모달(ESC/닫기 버튼/배경 클릭 닫기)을 한 곳에서 관리. 기존 `SeatMap` props(`states`, `seats`, `highlightCode`, `onSeatClick`, `onMapClick`, `lasso`, `onLasso`, `showOccupantNames`)는 그대로 전달.
+- **적용 화면**: `VenueMapViewer`가 내부적으로 `SeatMapPanel`을 사용하도록 변경하고, `/admin`, `/board`, `/`, `/seller`, `/kiosk`, `SeatConfigMap`의 지도 렌더링을 공용 패널로 연결. `/admin`·`/board`는 지도 섹션 컨테이너를 `max-w-[1480px]`로 확장하고 `size="large"` 적용. 랜딩 히어로는 `preview`, 일반 랜딩/셀러/키오스크는 `standard`.
+- **지도 자체 가독성**: `SeatMap` 좌석 번호/결합석 번호/랜드마크 라벨 폰트 상향, 좌석·하이라이트·랜드마크 stroke와 나무매대 바/벤치점 두께 상향. 기존 폭 추정과 `textLength` 압축 방식은 유지해서 긴 결합석 코드 잘림을 방지.
+- **브라우저 확인**: 개발 서버 `http://localhost:3001`에서 실제 Chrome으로 `/board` 대형 지도 2개와 확대 버튼 렌더 확인, `/kiosk` 로그인→셀러 선택→추첨 결과 하이라이트 지도/확대 버튼 확인, `/admin` 현황/자리설정 지도 확인. 자리설정 확대 모달에서 좌석 76 클릭이 편집 패널 선택 상태(`76 윗구간`)로 반영되고 ESC 닫기 동작 확인. 검증 중 만든 데모 추첨 1건은 `추첨 초기화`로 0/40 상태 복구.
+- **정적 검증**: `npm run typecheck` 통과. `npm test`는 샌드박스 IPC pipe 제한으로 1차 실패 후 정상 권한에서 16/16 통과. `npm run build`는 샌드박스 Turbopack 내부 포트 바인딩 제한으로 1차 실패 후 정상 권한에서 성공.
+- **남은 검증 제약**: `npm run lint`는 이번 변경과 무관한 기존 파일 4곳(`AdminGate`, `BuskingPanel`, `StaffPanel`, `SeatRoulette`)의 `react-hooks/set-state-in-effect` 오류로 실패. Playwright 헤드리스는 Chrome Crashpad/권한 문제와 브라우저 캐시 미설치로 모바일·태블릿 자동 뷰포트 스크린샷까지는 완료하지 못함.
+
+## 2026-06-30 (Codex context intake) — 전체 맥락 파악 + 후속 체크포인트
+- **읽은 범위**: 루트 문서/설정(`CLAUDE.md`, `AGENTS.md`, `package.json`, env 예시), `docs/`, `app/`, `components/`, `lib/`, `tests/`, `supabase/`, `design-system/`, `_input/` 원본 자료(엑셀 시트 구조·주요 이미지·Claude Design handoff zip 텍스트)를 확인. `node_modules`, `.next`, `.git`, `.env.local` 같은 의존성/빌드/비밀값 파일은 전체 열람 대상에서 제외.
+- **현재 이해**: 부평 문화의거리 플리마켓 자리 추첨 PoC. Next.js 16 App Router + React 19 + Tailwind v4. 데이터는 `Store` 인터페이스 아래 로컬(localStorage+BroadcastChannel) / Supabase(Postgres+Realtime+Auth) 자동 전환. 좌석 지도는 원본 엑셀에서 생성된 `lib/venue/venue-layout.ts` 상수와 `effectiveSeats(event)`가 중심.
+- **운영 핵심**: `/admin`은 행사·명단·자리설정·버스킹·근무자·메모, `/kiosk`는 셀러 선택 후 추첨, `/seller`는 공개 자리 조회+현장 GPS, `/board`는 실시간 현황판. 2매대 셀러는 붙임석만, 일반 셀러는 단독석만 추첨.
+- **문서/코드 불일치 후보**: 일부 문서/랜딩 카피에 제거된 “향제한” 설명이 남아 있음. `docs/FEATURE6_GPS.md`와 진행 기록 일부는 좌석 목표 GPS처럼 읽히지만 현재 `GpsGuide`는 행사장 중심까지의 거리/방위 + 배치도 폴백 구현. `docs/ARCHITECTURE.md`의 Supabase 체크리스트는 이미 구현된 내용 일부를 후속처럼 표현.
+- **후속 주의점**: Supabase 모드에서 `setBuskingEntries`/`setStaffEntries`는 전체 delete→insert라 저장 실패 처리 유지 필요. 버스킹 “무대 앞 6석 제외” 버튼은 현재 `setSeatActive`를 6회 호출하므로, Supabase 쓰기 비용/깜빡임 개선 시 `setSeatsActive`로 바꾸기 좋음. `supabase/migrations/0001_init.sql`의 realtime add는 재실행 멱등성이 약하므로 재적용 가이드나 SQL 보강 후보.
+
 ## 2026-06-30 (12) — 나무매대 표시 + 일정 월별 보기 + 배치도 아랫구간 바깥 strip 제거
 - **나무매대 표시**: 배정 좌석이 `event.woodSeatCodes`(=`states[code].type==="wood"`)면 셀러 ‘내 자리’ 카드 + 키오스크 추첨 결과에 **🪵 나무매대** 배지. (운영자가 ‘자리 설정’에서 지정한 좌석만)
 - **버스킹/근무자 월별 보기**: 공용 `components/admin/MonthBar.tsx`(◀▶·월선택·전체 보기 토글). 패널 목록을 선택 월로 필터(빈 달 안내), 신규 항목 기본 날짜·붙여넣기 M/D 보정도 선택 월 기준. 기존 나열식 → 월 단위 조회.

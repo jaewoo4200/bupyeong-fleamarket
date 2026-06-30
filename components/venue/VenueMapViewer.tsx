@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { SeatMap, type SeatMapProps } from "./SeatMap";
-import { aspectFor } from "@/lib/venue/bounds";
+import type { SeatMapProps } from "./SeatMap";
+import { SeatMapPanel, type SeatMapPanelSize } from "./SeatMapPanel";
 import { cn } from "@/lib/ui/cn";
 
 type View = "all" | "band1" | "band2";
@@ -16,26 +16,32 @@ const TABS: { key: View; label: string }[] = [
 function MapPanel({
   view,
   caption,
+  size,
+  expandable,
   ...mapProps
-}: { view: "band1" | "band2"; caption?: string } & Omit<SeatMapProps, "view">) {
+}: {
+  view: "band1" | "band2";
+  caption?: string;
+  size?: SeatMapPanelSize;
+  expandable?: boolean;
+} & Omit<SeatMapProps, "view">) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-cream-200 bg-white p-2 shadow-soft">
-      {caption && <p className="px-1.5 pb-1.5 pt-0.5 text-xs font-bold text-ink-500">{caption}</p>}
-      <div style={{ aspectRatio: aspectFor(view) }} className="w-full">
-        <SeatMap view={view} {...mapProps} />
-      </div>
-    </div>
+    <SeatMapPanel view={view} caption={caption} size={size} expandable={expandable} {...mapProps} />
   );
 }
 
 export function VenueMapViewer({
   defaultView = "all",
   showTabs = true,
+  size = "standard",
+  expandable = true,
   className,
   ...mapProps
 }: {
   defaultView?: View;
   showTabs?: boolean;
+  size?: SeatMapPanelSize;
+  expandable?: boolean;
   className?: string;
 } & Omit<SeatMapProps, "view">) {
   const [view, setView] = useState<View>(defaultView);
@@ -63,11 +69,23 @@ export function VenueMapViewer({
 
       {view === "all" ? (
         <div className="flex flex-col gap-3">
-          <MapPanel view="band1" caption="윗구간 — 문화의거리 입구 ~ 중앙무대" {...mapProps} />
-          <MapPanel view="band2" caption="아랫구간 — 중앙무대 ~ 분수대 ~ 문화의거리 입구" {...mapProps} />
+          <MapPanel
+            view="band1"
+            caption="윗구간 — 문화의거리 입구 ~ 중앙무대"
+            size={size}
+            expandable={expandable}
+            {...mapProps}
+          />
+          <MapPanel
+            view="band2"
+            caption="아랫구간 — 중앙무대 ~ 분수대 ~ 문화의거리 입구"
+            size={size}
+            expandable={expandable}
+            {...mapProps}
+          />
         </div>
       ) : (
-        <MapPanel view={view} {...mapProps} />
+        <MapPanel view={view} size={size} expandable={expandable} {...mapProps} />
       )}
     </div>
   );

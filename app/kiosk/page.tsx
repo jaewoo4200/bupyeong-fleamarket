@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { SeatRoulette } from "@/components/lottery/SeatRoulette";
-import { SeatMap } from "@/components/venue/SeatMap";
+import { SeatMapPanel } from "@/components/venue/SeatMapPanel";
 import { effectiveSeats } from "@/lib/venue/seats";
 import { cn } from "@/lib/ui/cn";
 
@@ -303,10 +303,15 @@ function RevealCard({
         </p>
       )}
 
-      <div className="mt-5 w-full max-w-xl overflow-hidden rounded-2xl border border-cream-200 bg-white p-2">
-        <div style={{ aspectRatio: band === "band1" ? 3.29 : 1.63 }}>
-          <SeatMap view={band} states={states} seats={seats} highlightCode={result.seatCode} />
-        </div>
+      <div className="mt-5 w-full max-w-2xl">
+        <SeatMapPanel
+          view={band}
+          caption={dir?.bandLabel ?? "배정 좌석 배치도"}
+          states={states}
+          seats={seats}
+          highlightCode={result.seatCode}
+          size="standard"
+        />
       </div>
 
       <Button size="lg" className="mt-7" onClick={onNext}>
