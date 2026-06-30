@@ -245,6 +245,7 @@ function RevealCard({
   const cat = getCategory(seller.categoryKey);
   const dir = seatDirections(result.seatCode);
   const band = dir?.band === 2 ? "band2" : "band1";
+  const isWood = states[result.seatCode]?.type === "wood";
 
   return (
     <motion.div
@@ -284,6 +285,17 @@ function RevealCard({
 
       <h2 className="mt-6 text-2xl font-extrabold text-ink-900">{seller.business}</h2>
       <p className="text-ink-500">{seller.name}</p>
+
+      {(isWood || seller.twoTables) && (
+        <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+          {isWood && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#A9744F] px-3 py-1 text-xs font-bold text-white">
+              🪵 나무매대
+            </span>
+          )}
+          {seller.twoTables && <Badge variant="gold">2매대(붙임석)</Badge>}
+        </div>
+      )}
 
       {dir && (
         <p className="mt-4 max-w-md rounded-xl bg-cream-100 px-4 py-2.5 text-sm font-medium text-ink-700">

@@ -2,6 +2,12 @@
 
 > 최신 항목을 위에 추가. 타 에이전트/세션의 컨텍스트 유지용.
 
+## 2026-06-30 (12) — 나무매대 표시 + 일정 월별 보기 + 배치도 아랫구간 바깥 strip 제거
+- **나무매대 표시**: 배정 좌석이 `event.woodSeatCodes`(=`states[code].type==="wood"`)면 셀러 ‘내 자리’ 카드 + 키오스크 추첨 결과에 **🪵 나무매대** 배지. (운영자가 ‘자리 설정’에서 지정한 좌석만)
+- **버스킹/근무자 월별 보기**: 공용 `components/admin/MonthBar.tsx`(◀▶·월선택·전체 보기 토글). 패널 목록을 선택 월로 필터(빈 달 안내), 신규 항목 기본 날짜·붙여넣기 M/D 보정도 선택 월 기준. 기존 나열식 → 월 단위 조회.
+- **배치도 아랫구간 바깥 strip 완전 제거(요청: 아예 안뜨게)**: `lib/venue/bounds.ts`에서 **좌석 세로 범위와 겹치는 랜드마크만** 렌더(`VISIBLE_LANDMARKS`)하고 bounds도 거기에 맞춤 → 아랫구간 맨 아래 상가·포장마차·문화의거리입구·조형물 + 빈 여백 제거(첨부 우측 이미지와 일치). 좌석 사이 운영 구조물(중앙무대·분수대·배전반 등)은 유지. 모든 상가(store)는 좌석 줄 밖이라 자동 제외 → 이전 ‘주변 상가’ 토글 제거.
+- 검증: typecheck·build·test(16/16). 로컬 프리뷰 — 아랫구간 크롭(우측 이미지 일치)·월 네비(6월 10건↔4월 0건)·나무매대 배지(seat30 June=O / seat48 July=X) 확인, 콘솔 에러 0.
+
 ## 2026-06-30 (11) — 일정 텍스트 가져오기(버스킹·근무자 탭) + 지도 확대·접기
 - **버스킹/근무자 = 편집 가능한 전역 데이터로 전환**: `AppData.busking/staff`(날짜 기준), `Store.setBuskingEntries/setStaffEntries`(양 어댑터). 기존 정적 파일(`lib/data/busking.ts`·`staff.ts`)은 시드 배열(`SEED_BUSKING`/`SEED_STAFF`)+순수 셀렉터(`*ForDate(entries,date)`)로 리팩터. 마이그레이션 `0004_schedules.sql`(busking/staff 테이블 + 읽기public/쓰기auth RLS + realtime + 데모 시드). load는 테이블 없으면 복원력 유지.
 - **사진→텍스트 자동입력(우리쪽은 텍스트만 처리, OCR/AI 호출 없음)**: `lib/data/schedule-parse.ts` — 복붙용 프롬프트(`BUSKING_PROMPT`/`STAFF_PROMPT`)를 운영자가 자기 AI에 사진과 함께 넣어 구조화 텍스트를 받고, 그걸 붙여넣으면 `parseBuskingText`/`parseStaffText`가 파싱(`날짜|…` 형식, `normalizeDate` 관대, issue 리포트, `upsertByDate` 날짜별 병합).

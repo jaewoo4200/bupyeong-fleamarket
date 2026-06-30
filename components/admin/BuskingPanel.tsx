@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Trash2, Save, Undo2, Music, AlertTriangle, ArrowDownToLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input, Label, Select } from "@/components/ui/input";
+import { Label } from "@/components/ui/input";
 import { useStore } from "@/lib/data/hooks";
 import { BUSKING_PROMPT, parseBuskingText, upsertByDate } from "@/lib/data/schedule-parse";
 import type { BuskingEntry } from "@/lib/data/types";
 import { SchedulePromptBox } from "./SchedulePromptBox";
+import { MonthBar } from "./MonthBar";
 
 function newId() {
   return "bsk_" + Math.random().toString(36).slice(2, 10);
@@ -28,6 +29,7 @@ export function BuskingPanel({ entries, defaultDate }: { entries: BuskingEntry[]
   const [text, setText] = useState("");
   const init = defaultDate ?? "2026-06-01";
   const [ym, setYm] = useState(init.slice(0, 7));
+  const [showAll, setShowAll] = useState(false);
   const [y, mo] = ym.split("-").map(Number);
   const parsed = useMemo(
     () => parseBuskingText(text, { defaultYear: y, defaultMonth: mo }),
@@ -43,7 +45,8 @@ export function BuskingPanel({ entries, defaultDate }: { entries: BuskingEntry[]
     setDirty(true);
   };
   const addRow = () => {
-    setDraft((d) => [...d, { id: newId(), date: init, time: "", title: "", performer: "", contact: "" }]);
+    const date = showAll ? init : `${ym}-01`;
+    setDraft((d) => [...d, { id: newId(), date, time: "", title: "", performer: "", contact: "" }]);
     setDirty(true);
   };
   const doImport = () => {
@@ -66,21 +69,23 @@ export function BuskingPanel({ entries, defaultDate }: { entries: BuskingEntry[]
   };
 
   const sorted = useMemo(() => [...draft].sort(byDate), [draft]);
+  const visible = useMemo(
+    () => (showAll ? sorted : sorted.filter((e) => e.date.startsWith(ym))),
+    [sorted, showAll, ym],
+  );
 
   return (
     <div className="flex flex-col gap-5">
       <SchedulePromptBox prompt={BUSKING_PROMPT} kind="버스킹" />
+
+      <MonthBar ym={ym} setYm={setYm} showAll={showAll} setShowAll={setShowAll} count={visible.length} totalCount={draft.length} unit="건" />
 
       {/* 붙여넣기 → 미리보기 → 가져오기 */}
       <div className="rounded-2xl border border-cream-200 bg-white p-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="flex-1">
             <Label>AI 결과 붙여넣기</Label>
-            <p className="mt-0.5 text-xs text-ink-400">형식: 날짜 | 시간 | 공연명 | 공연자 | 연락처</p>
-          </div>
-          <div className="w-40">
-            <Label>기준 연·월</Label>
-            <Input type="month" value={ym} onChange={(e) => setYm(e.target.value)} className="h-9" />
+            <p className="mt-0.5 text-xs text-ink-400">형식: 날짜 | 시간 | 공연명 | 공연자 | 연락처 · 날짜가 M/D면 위 “{ym}” 기준 보정</p>
           </div>
         </div>
         <textarea
@@ -118,20 +123,21 @@ export function BuskingPanel({ entries, defaultDate }: { entries: BuskingEntry[]
       <div className="rounded-2xl border border-cream-200 bg-white p-4">
         <div className="flex items-center justify-between">
           <h4 className="flex items-center gap-1.5 text-sm font-bold text-ink-900">
-            <Music className="size-4 text-gold-500" /> 버스킹 일정 ({sorted.length})
+            <Music className="size-4 text-gold-500" />{" "}
+            {showAll ? "버스킹 일정 (전체)" : `버스킹 일정 · ${+ym.slice(5, 7)}월`} ({visible.length})
           </h4>
           <Button size="sm" variant="outline" onClick={addRow}>
             <Plus /> 일정 추가
           </Button>
         </div>
 
-        {sorted.length === 0 ? (
+        {visible.length === 0 ? (
           <p className="mt-3 rounded-lg bg-cream-50 px-3 py-6 text-center text-sm text-ink-400">
-            등록된 버스킹 일정이 없습니다. 위에서 사진→텍스트로 가져오거나 “일정 추가”를 누르세요.
+            {showAll ? "등록된" : `${+ym.slice(5, 7)}월에 등록된`} 버스킹 일정이 없습니다. 위에서 사진→텍스트로 가져오거나 “일정 추가”를 누르세요.
           </p>
         ) : (
           <div className="mt-3 flex flex-col gap-2">
-            {sorted.map((e) => (
+            {visible.map((e) => (
               <div key={e.id} className="grid grid-cols-[7.5rem_6.5rem_1fr_auto] items-center gap-1.5 rounded-xl bg-cream-50 p-1.5">
                 <input type="date" value={e.date} onChange={(ev) => edit(e.id, { date: ev.target.value })} className={cell} />
                 <input value={e.time ?? ""} placeholder="시간" onChange={(ev) => edit(e.id, { time: ev.target.value })} className={cell} />

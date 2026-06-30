@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { SEATS, LANDMARKS, type LandmarkKind, type SeatGeo } from "@/lib/venue/venue-layout";
-import { boundsFor, viewBoxStr, BAND1_BOUNDS, BAND2_BOUNDS } from "@/lib/venue/bounds";
+import { SEATS, type LandmarkKind, type SeatGeo } from "@/lib/venue/venue-layout";
+import { boundsFor, viewBoxStr, BAND1_BOUNDS, BAND2_BOUNDS, VISIBLE_LANDMARKS } from "@/lib/venue/bounds";
 import { getCategory } from "@/lib/venue/categories";
 import { BENCH_TINT, BENCH_SOLID } from "@/lib/venue/bench";
 import type { SeatCellState } from "@/lib/data/types";
@@ -20,8 +20,6 @@ export type SeatMapProps = {
   showOccupantNames?: boolean;
   /** 렌더할 좌석 목록 (기본 정적 SEATS). 결합석 분리·커스텀 좌석 반영 시 effectiveSeats 전달. */
   seats?: SeatGeo[];
-  /** 주변 상가(벤치·자리번호 없는 store 라벨) 숨기기 — 좌석이 더 크게 보임 */
-  hideStores?: boolean;
   /** 드래그 영역 선택(일괄 제외). 드래그한 사각형 안 좌석 코드를 전달. */
   lasso?: boolean;
   onLasso?: (codes: string[]) => void;
@@ -62,12 +60,11 @@ export function SeatMap({
   view = "all",
   showOccupantNames = false,
   seats = SEATS,
-  hideStores = false,
   lasso = false,
   onLasso,
   className,
 }: SeatMapProps) {
-  const viewBox = viewBoxStr(boundsFor(view, hideStores));
+  const viewBox = viewBoxStr(boundsFor(view));
   const [box, setBox] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
   const boxRef = useRef<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
   const dragging = useRef(false);
@@ -78,9 +75,8 @@ export function SeatMap({
 
   const inBand = (band: 1 | 2) => view === "all" || band === (view === "band1" ? 1 : 2);
   const visibleSeats = seats.filter((s) => inBand(s.band));
-  const visibleLandmarks = LANDMARKS.filter(
-    (l) => inBand(l.band) && !(hideStores && l.kind === "store"),
-  );
+  // 좌석 줄과 겹치는 랜드마크만(좌석 바깥 상가·구조물 strip은 bounds에서 제외됨)
+  const visibleLandmarks = VISIBLE_LANDMARKS.filter((l) => inBand(l.band));
 
   function toViewBox(e: React.PointerEvent<SVGSVGElement> | React.MouseEvent<SVGSVGElement>) {
     const rect = e.currentTarget.getBoundingClientRect();

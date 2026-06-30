@@ -9,6 +9,7 @@ import { STAFF_PROMPT, parseStaffText, upsertByDate } from "@/lib/data/schedule-
 import type { StaffEntry } from "@/lib/data/types";
 import { SchedulePromptBox } from "./SchedulePromptBox";
 import { SaveBar } from "./BuskingPanel";
+import { MonthBar } from "./MonthBar";
 
 function newId() {
   return "stf_" + Math.random().toString(36).slice(2, 10);
@@ -37,6 +38,7 @@ export function StaffPanel({ entries, defaultDate }: { entries: StaffEntry[]; de
   const [text, setText] = useState("");
   const init = defaultDate ?? "2026-06-01";
   const [ym, setYm] = useState(init.slice(0, 7));
+  const [showAll, setShowAll] = useState(false);
   const [newDate, setNewDate] = useState(init);
   const [y, mo] = ym.split("-").map(Number);
   const parsed = useMemo(() => parseStaffText(text, { defaultYear: y, defaultMonth: mo }), [text, y, mo]);
@@ -67,7 +69,7 @@ export function StaffPanel({ entries, defaultDate }: { entries: StaffEntry[]; de
     setDirty(false);
   };
 
-  const groups = useMemo(() => {
+  const allGroups = useMemo(() => {
     const m = new Map<string, StaffEntry[]>();
     for (const e of draft) {
       const arr = m.get(e.date) ?? [];
@@ -76,21 +78,24 @@ export function StaffPanel({ entries, defaultDate }: { entries: StaffEntry[]; de
     }
     return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
   }, [draft]);
+  const groups = useMemo(
+    () => (showAll ? allGroups : allGroups.filter(([date]) => date.startsWith(ym))),
+    [allGroups, showAll, ym],
+  );
+  const visiblePeople = groups.reduce((n, [, ps]) => n + ps.length, 0);
 
   return (
     <div className="flex flex-col gap-5">
       <SchedulePromptBox prompt={STAFF_PROMPT} kind="근무자" />
+
+      <MonthBar ym={ym} setYm={setYm} showAll={showAll} setShowAll={setShowAll} count={groups.length} totalCount={allGroups.length} unit="일" />
 
       {/* 붙여넣기 → 미리보기 → 가져오기 */}
       <div className="rounded-2xl border border-cream-200 bg-white p-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="flex-1">
             <Label>AI 결과 붙여넣기</Label>
-            <p className="mt-0.5 text-xs text-ink-400">형식: 날짜 | 근무자(쉼표 구분, 직책은 이름 뒤 공백)</p>
-          </div>
-          <div className="w-40">
-            <Label>기준 연·월</Label>
-            <Input type="month" value={ym} onChange={(e) => setYm(e.target.value)} className="h-9" />
+            <p className="mt-0.5 text-xs text-ink-400">형식: 날짜 | 근무자(쉼표 구분, 직책은 이름 뒤 공백) · 날짜가 M/D면 위 “{ym}” 기준 보정</p>
           </div>
         </div>
         <textarea
@@ -130,7 +135,8 @@ export function StaffPanel({ entries, defaultDate }: { entries: StaffEntry[]; de
       <div className="rounded-2xl border border-cream-200 bg-white p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h4 className="flex items-center gap-1.5 text-sm font-bold text-ink-900">
-            <Users2 className="size-4 text-coral-600" /> 근무자 ({groups.length}일)
+            <Users2 className="size-4 text-coral-600" />{" "}
+            {showAll ? "근무자 (전체)" : `근무자 · ${+ym.slice(5, 7)}월`} ({groups.length}일 · {visiblePeople}명)
           </h4>
           <div className="flex items-center gap-1.5">
             <Input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} className="h-9 w-40" />
@@ -142,7 +148,7 @@ export function StaffPanel({ entries, defaultDate }: { entries: StaffEntry[]; de
 
         {groups.length === 0 ? (
           <p className="mt-3 rounded-lg bg-cream-50 px-3 py-6 text-center text-sm text-ink-400">
-            등록된 근무자가 없습니다. 위에서 사진→텍스트로 가져오거나 “날짜 추가”를 누르세요.
+            {showAll ? "등록된" : `${+ym.slice(5, 7)}월에 등록된`} 근무자가 없습니다. 위에서 사진→텍스트로 가져오거나 “날짜 추가”를 누르세요.
           </p>
         ) : (
           <div className="mt-3 flex flex-col gap-3">

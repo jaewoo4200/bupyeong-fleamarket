@@ -66,6 +66,7 @@ function SellerCard({ seller, data }: { seller: Seller; data: ReturnType<typeof 
     [event, data.sellers, seller.eventId],
   );
   const effSeats = useMemo(() => effectiveSeats(event), [event]);
+  const isWood = !!seller.assignedSeat && states[seller.assignedSeat]?.type === "wood";
 
   return (
     <div className="overflow-hidden rounded-2xl border border-cream-200 bg-white shadow-card">
@@ -115,6 +116,20 @@ function SellerCard({ seller, data }: { seller: Seller; data: ReturnType<typeof 
                   <MapPin className="mt-0.5 size-4 shrink-0 text-coral-600" />
                   {dir.text}
                 </p>
+              )}
+              {(isWood || seller.twoTables) && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {isWood && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#A9744F] px-2.5 py-1 text-[11px] font-bold text-white">
+                      🪵 나무매대
+                    </span>
+                  )}
+                  {seller.twoTables && (
+                    <span className="inline-flex items-center rounded-full bg-[#fbf0d2] px-2.5 py-1 text-[11px] font-bold text-[#8a5e12]">
+                      2매대(붙임석)
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           </div>
